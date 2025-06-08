@@ -126,7 +126,7 @@ const FooterSection = () => {
         {/* Bottom Bar */}
         <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <div className="text-slate-400 text-sm">
-            © 2023 RepeatHarmony. All rights reserved.
+            © 2025 RepeatHarmony. All rights reserved.
           </div>
 
           <div className="flex space-x-6 text-slate-400 text-sm">

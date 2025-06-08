@@ -343,7 +343,7 @@ const Therapy = () => {
               </Button>
             </div>
             <p className="text-slate-500 text-sm mt-8">
-              © 2023 RepeatHarmony.
+              © 2025 RepeatHarmony.
             </p>
             <div className="flex justify-center space-x-2 mt-4">
               <div className="w-6 h-6 bg-slate-700 rounded"></div>
