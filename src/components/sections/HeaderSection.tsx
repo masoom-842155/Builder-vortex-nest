@@ -8,6 +8,7 @@ const HeaderSection = () => {
 
   const navLinks = [
     { label: "Home", href: "/" },
+    { label: "Mood Input", href: "/mood-input" },
     { label: "Mood Music", href: "/mood-music" },
     { label: "Dashboard", href: "#" },
     { label: "Therapy", href: "#" },
