@@ -10,9 +10,9 @@ const HeaderSection = () => {
     { label: "Home", href: "/" },
     { label: "Mood Input", href: "/mood-input" },
     { label: "Mood Music", href: "/mood-music" },
-    { label: "Dashboard", href: "#" },
-    { label: "Therapy", href: "#" },
-    { label: "Forum", href: "#" },
+    { label: "Dashboard", href: "/dashboard" },
+    { label: "Therapy", href: "/therapy" },
+    { label: "Forum", href: "/forum" },
   ];
 
   return (
