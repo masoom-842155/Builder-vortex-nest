@@ -1,13 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Heart, Menu, X } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const HeaderSection = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navLinks = [
-    { label: "Home", href: "#" },
-    { label: "Request Input", href: "#" },
+    { label: "Home", href: "/" },
+    { label: "Mood Music", href: "/mood-music" },
     { label: "Dashboard", href: "#" },
     { label: "Therapy", href: "#" },
     { label: "Forum", href: "#" },
@@ -18,21 +19,21 @@ const HeaderSection = () => {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2">
             <Heart className="w-8 h-8 text-blue-400" />
             <span className="text-xl font-bold text-white">RepeatHarmony</span>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             {navLinks.map((link, index) => (
-              <a
+              <Link
                 key={index}
-                href={link.href}
+                to={link.href}
                 className="text-slate-300 hover:text-blue-400 transition-colors duration-200 font-medium"
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
           </nav>
 
@@ -64,14 +65,14 @@ const HeaderSection = () => {
           <div className="md:hidden border-t border-slate-800 py-4">
             <nav className="flex flex-col space-y-4">
               {navLinks.map((link, index) => (
-                <a
+                <Link
                   key={index}
-                  href={link.href}
+                  to={link.href}
                   className="text-slate-300 hover:text-blue-400 transition-colors duration-200 font-medium px-2 py-1"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {link.label}
-                </a>
+                </Link>
               ))}
               <div className="flex flex-col space-y-2 pt-4 border-t border-slate-800">
                 <Button
