@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,6 +10,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
 import {
   Home,
   MessageSquare,
@@ -25,8 +27,11 @@ import {
   Meh,
   Smile,
   Frown,
+  Sparkles,
+  MicIcon,
+  Square,
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const sidebarItems = [
   { icon: Home, label: "Home", href: "/", id: "home" },
@@ -41,43 +46,322 @@ const sidebarItems = [
   { icon: Users, label: "Forum", href: "/forum", id: "forum" },
 ];
 
-const recentMoods = [
-  {
-    mood: "Calm",
-    time: "2 hours ago",
-    color: "bg-green-500",
-    icon: CheckCircle,
-  },
-  { mood: "Neutral", time: "Yesterday", color: "bg-yellow-500", icon: Meh },
-  {
-    mood: "Anxious",
-    time: "2 days ago",
-    color: "bg-red-500",
-    icon: AlertCircle,
-  },
-  { mood: "Relaxed", time: "3 days ago", color: "bg-blue-500", icon: Smile },
-  { mood: "Stressed", time: "4 days ago", color: "bg-purple-500", icon: Frown },
-  {
-    mood: "Optimistic",
-    time: "5 days ago",
-    color: "bg-green-400",
-    icon: Smile,
-  },
-];
+interface MoodEntry {
+  mood: string;
+  time: string;
+  color: string;
+  icon: any;
+  confidence: number;
+  description: string;
+}
+
+const moodKeywords = {
+  happy: [
+    "happy",
+    "joy",
+    "excited",
+    "great",
+    "amazing",
+    "wonderful",
+    "fantastic",
+    "good",
+    "positive",
+    "cheerful",
+  ],
+  sad: [
+    "sad",
+    "down",
+    "depressed",
+    "blue",
+    "low",
+    "unhappy",
+    "tearful",
+    "crying",
+    "hurt",
+    "disappointed",
+  ],
+  anxious: [
+    "anxious",
+    "worried",
+    "nervous",
+    "stressed",
+    "panic",
+    "fear",
+    "overwhelmed",
+    "tense",
+    "restless",
+  ],
+  calm: [
+    "calm",
+    "peaceful",
+    "relaxed",
+    "serene",
+    "tranquil",
+    "centered",
+    "balanced",
+    "quiet",
+    "still",
+  ],
+  angry: [
+    "angry",
+    "mad",
+    "furious",
+    "irritated",
+    "frustrated",
+    "annoyed",
+    "rage",
+    "livid",
+  ],
+  neutral: [
+    "okay",
+    "fine",
+    "normal",
+    "average",
+    "alright",
+    "decent",
+    "moderate",
+  ],
+  energetic: [
+    "energetic",
+    "pumped",
+    "motivated",
+    "active",
+    "vigorous",
+    "dynamic",
+    "lively",
+  ],
+};
 
 const MoodInput = () => {
   const [selectedInputMethod, setSelectedInputMethod] = useState("text");
   const [moodText, setMoodText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const location = useLocation();
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [detectedMood, setDetectedMood] = useState<string | null>(null);
+  const [moodConfidence, setMoodConfidence] = useState(0);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [recentMoods, setRecentMoods] = useState<MoodEntry[]>([
+    {
+      mood: "Calm",
+      time: "2 hours ago",
+      color: "bg-green-500",
+      icon: CheckCircle,
+      confidence: 85,
+      description: "Feeling peaceful after meditation",
+    },
+    {
+      mood: "Neutral",
+      time: "Yesterday",
+      color: "bg-yellow-500",
+      icon: Meh,
+      confidence: 72,
+      description: "Average day, nothing special",
+    },
+    {
+      mood: "Anxious",
+      time: "2 days ago",
+      color: "bg-red-500",
+      icon: AlertCircle,
+      confidence: 91,
+      description: "Work presentation stress",
+    },
+    {
+      mood: "Relaxed",
+      time: "3 days ago",
+      color: "bg-blue-500",
+      icon: Smile,
+      confidence: 88,
+      description: "Weekend vibes",
+    },
+    {
+      mood: "Stressed",
+      time: "4 days ago",
+      color: "bg-purple-500",
+      icon: Frown,
+      confidence: 79,
+      description: "Deadline pressure",
+    },
+  ]);
 
-  const handleSubmit = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (isRecording) {
+      const interval = setInterval(() => {
+        setRecordingTime((prev) => prev + 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    } else {
+      setRecordingTime(0);
+    }
+  }, [isRecording]);
+
+  const analyzeMoodFromText = (text: string) => {
+    const words = text.toLowerCase().split(/\s+/);
+    const moodScores: { [key: string]: number } = {};
+
+    Object.entries(moodKeywords).forEach(([mood, keywords]) => {
+      moodScores[mood] = 0;
+      keywords.forEach((keyword) => {
+        words.forEach((word) => {
+          if (word.includes(keyword) || keyword.includes(word)) {
+            moodScores[mood] += 1;
+          }
+        });
+      });
+    });
+
+    const topMood = Object.entries(moodScores).reduce((a, b) =>
+      moodScores[a[0]] > moodScores[b[0]] ? a : b,
+    );
+
+    const confidence = Math.min(
+      95,
+      Math.max(60, topMood[1] * 20 + Math.random() * 15),
+    );
+    return { mood: topMood[0], confidence: Math.round(confidence) };
+  };
+
+  const handleSubmit = async () => {
+    if (!moodText.trim() && selectedInputMethod === "text") {
+      toast({
+        title: "Please enter your thoughts",
+        description:
+          "Write something about how you're feeling to analyze your mood.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
-    // Simulate mood analysis
+    setIsAnalyzing(true);
+    setAnalysisProgress(0);
+
+    // Simulate analysis progress
+    const progressInterval = setInterval(() => {
+      setAnalysisProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(progressInterval);
+          return 100;
+        }
+        return prev + Math.random() * 15;
+      });
+    }, 200);
+
+    // Analyze mood
+    const analysis = analyzeMoodFromText(moodText);
+
     setTimeout(() => {
+      setDetectedMood(analysis.mood);
+      setMoodConfidence(analysis.confidence);
+      setIsAnalyzing(false);
+
+      // Add to recent moods
+      const newMoodEntry: MoodEntry = {
+        mood: analysis.mood.charAt(0).toUpperCase() + analysis.mood.slice(1),
+        time: "Just now",
+        color: `bg-${getMoodColor(analysis.mood)}-500`,
+        icon: getMoodIcon(analysis.mood),
+        confidence: analysis.confidence,
+        description:
+          moodText.substring(0, 50) + (moodText.length > 50 ? "..." : ""),
+      };
+
+      setRecentMoods((prev) => [newMoodEntry, ...prev.slice(0, 4)]);
+
+      toast({
+        title: "Mood Analysis Complete!",
+        description: `Detected ${analysis.mood} mood with ${analysis.confidence}% confidence.`,
+      });
+
       setIsSubmitting(false);
-      // You would typically navigate to results or update the mood history
-    }, 2000);
+    }, 3000);
+  };
+
+  const getMoodColor = (mood: string) => {
+    const colors: { [key: string]: string } = {
+      happy: "yellow",
+      sad: "blue",
+      anxious: "red",
+      calm: "green",
+      angry: "red",
+      neutral: "gray",
+      energetic: "orange",
+    };
+    return colors[mood] || "gray";
+  };
+
+  const getMoodIcon = (mood: string) => {
+    const icons: { [key: string]: any } = {
+      happy: Smile,
+      sad: Frown,
+      anxious: AlertCircle,
+      calm: CheckCircle,
+      angry: AlertCircle,
+      neutral: Meh,
+      energetic: Sparkles,
+    };
+    return icons[mood] || Meh;
+  };
+
+  const handleVoiceRecording = () => {
+    if (!isRecording) {
+      // Start recording
+      setIsRecording(true);
+      toast({
+        title: "Recording Started",
+        description: "Speak clearly about your feelings...",
+      });
+    } else {
+      // Stop recording
+      setIsRecording(false);
+      toast({
+        title: "Recording Stopped",
+        description: "Processing your voice input...",
+      });
+      // Simulate voice processing
+      setTimeout(() => {
+        setMoodText(
+          "I've been feeling a bit stressed lately with work deadlines, but I'm trying to stay positive and focus on the things I can control.",
+        );
+        toast({
+          title: "Voice Processed",
+          description: "Your speech has been converted to text for analysis.",
+        });
+      }, 2000);
+    }
+  };
+
+  const handleCameraToggle = () => {
+    setIsCameraActive(!isCameraActive);
+    if (!isCameraActive) {
+      toast({
+        title: "Camera Activated",
+        description: "Analyzing facial expressions...",
+      });
+      // Simulate facial analysis
+      setTimeout(() => {
+        const randomMoods = ["calm", "neutral", "slightly_happy"];
+        const randomMood =
+          randomMoods[Math.floor(Math.random() * randomMoods.length)];
+        setDetectedMood(randomMood);
+        setMoodConfidence(Math.floor(Math.random() * 20) + 75);
+        toast({
+          title: "Facial Analysis Complete",
+          description: `Detected ${randomMood.replace("_", " ")} expression.`,
+        });
+      }, 3000);
+    } else {
+      toast({
+        title: "Camera Deactivated",
+        description: "Facial analysis stopped.",
+      });
+    }
   };
 
   const inputMethods = [
@@ -148,7 +432,7 @@ const MoodInput = () => {
               <User className="w-4 h-4 text-white" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-white">User Profile</p>
+              <p className="text-sm font-medium text-white">John Doe</p>
             </div>
           </div>
         </div>
@@ -205,6 +489,29 @@ const MoodInput = () => {
               </CardContent>
             </Card>
 
+            {/* Analysis Progress */}
+            {isAnalyzing && (
+              <Card className="bg-slate-800 border-slate-700">
+                <CardContent className="p-6">
+                  <div className="text-center space-y-4">
+                    <div className="inline-flex items-center space-x-3 text-blue-400">
+                      <Brain className="w-6 h-6 animate-pulse" />
+                      <span className="text-lg font-medium">
+                        AI is analyzing your mood...
+                      </span>
+                    </div>
+                    <Progress
+                      value={analysisProgress}
+                      className="w-full max-w-md mx-auto"
+                    />
+                    <p className="text-slate-400">
+                      Processing: {Math.round(analysisProgress)}%
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Input Interface */}
             <Card className="bg-slate-800 border-slate-700">
               <CardHeader>
@@ -233,14 +540,25 @@ const MoodInput = () => {
                 {selectedInputMethod === "voice" && (
                   <div className="min-h-[200px] bg-slate-900 border border-slate-600 rounded-lg flex items-center justify-center">
                     <div className="text-center space-y-4">
-                      <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto">
-                        <Mic className="w-10 h-10 text-white" />
+                      <div
+                        className={`w-20 h-20 ${isRecording ? "bg-red-600 animate-pulse" : "bg-blue-600"} rounded-full flex items-center justify-center mx-auto`}
+                      >
+                        {isRecording ? (
+                          <Square className="w-10 h-10 text-white" />
+                        ) : (
+                          <MicIcon className="w-10 h-10 text-white" />
+                        )}
                       </div>
                       <p className="text-slate-400">
-                        Click to start recording your voice
+                        {isRecording
+                          ? `Recording... ${recordingTime}s`
+                          : "Click to start recording your voice"}
                       </p>
-                      <Button className="bg-red-600 hover:bg-red-700">
-                        Start Recording
+                      <Button
+                        onClick={handleVoiceRecording}
+                        className={`${isRecording ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"}`}
+                      >
+                        {isRecording ? "Stop Recording" : "Start Recording"}
                       </Button>
                     </div>
                   </div>
@@ -249,14 +567,21 @@ const MoodInput = () => {
                 {selectedInputMethod === "facial" && (
                   <div className="min-h-[200px] bg-slate-900 border border-slate-600 rounded-lg flex items-center justify-center">
                     <div className="text-center space-y-4">
-                      <div className="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mx-auto">
+                      <div
+                        className={`w-20 h-20 ${isCameraActive ? "bg-green-600 animate-pulse" : "bg-purple-600"} rounded-full flex items-center justify-center mx-auto`}
+                      >
                         <Camera className="w-10 h-10 text-white" />
                       </div>
                       <p className="text-slate-400">
-                        Enable camera for facial emotion analysis
+                        {isCameraActive
+                          ? "Camera active - analyzing expressions..."
+                          : "Enable camera for facial emotion analysis"}
                       </p>
-                      <Button className="bg-purple-600 hover:bg-purple-700">
-                        Enable Camera
+                      <Button
+                        onClick={handleCameraToggle}
+                        className={`${isCameraActive ? "bg-red-600 hover:bg-red-700" : "bg-purple-600 hover:bg-purple-700"}`}
+                      >
+                        {isCameraActive ? "Stop Camera" : "Enable Camera"}
                       </Button>
                     </div>
                   </div>
@@ -272,9 +597,26 @@ const MoodInput = () => {
                     Your mood visualized here
                   </h3>
                   <div className="w-full h-32 bg-slate-800/50 rounded-lg flex items-center justify-center">
-                    <p className="text-slate-400">
-                      Mood visualization will appear after analysis
-                    </p>
+                    {detectedMood ? (
+                      <div className="text-center space-y-2">
+                        <div className="text-3xl font-bold text-white capitalize">
+                          {detectedMood.replace("_", " ")}
+                        </div>
+                        <div className="text-lg text-blue-300">
+                          {moodConfidence}% confidence
+                        </div>
+                        <div className="w-32 h-2 bg-slate-700 rounded-full mx-auto">
+                          <div
+                            className="h-2 bg-blue-500 rounded-full transition-all duration-1000"
+                            style={{ width: `${moodConfidence}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-slate-400">
+                        Mood visualization will appear after analysis
+                      </p>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -286,6 +628,7 @@ const MoodInput = () => {
                 onClick={handleSubmit}
                 disabled={
                   isSubmitting ||
+                  isAnalyzing ||
                   (selectedInputMethod === "text" && !moodText.trim())
                 }
                 className="bg-blue-600 hover:bg-blue-700 text-white px-12 py-4 text-lg font-semibold rounded-lg disabled:opacity-50"
@@ -317,7 +660,7 @@ const MoodInput = () => {
                     className="bg-slate-800 border-slate-700 hover:border-slate-600 transition-colors"
                   >
                     <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center space-x-3">
                           <div
                             className={`w-10 h-10 ${mood.color} rounded-full flex items-center justify-center`}
@@ -333,14 +676,24 @@ const MoodInput = () => {
                             </p>
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-blue-400 hover:text-blue-300 hover:bg-slate-700"
+                        <Badge
+                          variant="outline"
+                          className="border-slate-600 text-slate-400"
                         >
-                          View Details
-                        </Button>
+                          {mood.confidence}%
+                        </Badge>
                       </div>
+                      <p className="text-slate-400 text-sm">
+                        {mood.description}
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-blue-400 hover:text-blue-300 hover:bg-slate-700 mt-2 w-full"
+                        onClick={() => navigate("/dashboard")}
+                      >
+                        View Details
+                      </Button>
                     </CardContent>
                   </Card>
                 );
@@ -352,7 +705,8 @@ const MoodInput = () => {
             <div className="text-center">
               <Button
                 variant="outline"
-                className="border-slate-600 text-slate-300 hover:bg-slate-800"
+                className="border-slate-600 text-slate-300 hover:bg-slate-800 w-full"
+                onClick={() => navigate("/dashboard")}
               >
                 View Full History
               </Button>

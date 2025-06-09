@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,14 +9,20 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Slider } from "@/components/ui/slider";
+import { useToast } from "@/hooks/use-toast";
 import {
   Play,
   Pause,
   SkipForward,
+  SkipBack,
   Heart,
   Music,
   Brain,
   Headphones,
+  Volume2,
+  Shuffle,
+  Repeat,
 } from "lucide-react";
 import HeaderSection from "@/components/sections/HeaderSection";
 
@@ -39,18 +45,21 @@ const musicRecommendations = {
       artist: "Harmony Springs",
       duration: "3:24",
       genre: "Uplifting Pop",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
     {
       title: "Joy Waves",
       artist: "Positive Vibes Collective",
       duration: "4:12",
       genre: "Feel-Good Electronic",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
     {
       title: "Bright Morning",
       artist: "Sunshine Orchestra",
       duration: "2:58",
       genre: "Upbeat Instrumental",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
   ],
   sad: [
@@ -59,18 +68,21 @@ const musicRecommendations = {
       artist: "Melancholy Sounds",
       duration: "5:43",
       genre: "Ambient Sad",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
     {
       title: "Quiet Reflection",
       artist: "Somber Piano",
       duration: "4:28",
       genre: "Emotional Piano",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
     {
       title: "Healing Tears",
       artist: "Therapeutic Strings",
       duration: "6:15",
       genre: "Cathartic Classical",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
   ],
   anxious: [
@@ -79,18 +91,21 @@ const musicRecommendations = {
       artist: "Anxiety Relief",
       duration: "8:30",
       genre: "Calming Meditation",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
     {
       title: "Safe Harbor",
       artist: "Peaceful Mind",
       duration: "5:45",
       genre: "Grounding Ambient",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
     {
       title: "Steady Heartbeat",
       artist: "Rhythmic Therapy",
       duration: "7:20",
       genre: "Stabilizing Sounds",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
   ],
   calm: [
@@ -99,18 +114,21 @@ const musicRecommendations = {
       artist: "Tranquil Waves",
       duration: "10:15",
       genre: "Nature Sounds",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
     {
       title: "Moonlight Meditation",
       artist: "Zen Garden",
       duration: "12:30",
       genre: "Meditation Music",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
     {
       title: "Peaceful Valley",
       artist: "Serenity Composers",
       duration: "8:45",
       genre: "Ambient Peace",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
   ],
   energetic: [
@@ -119,18 +137,21 @@ const musicRecommendations = {
       artist: "High Energy Collective",
       duration: "3:28",
       genre: "Motivational EDM",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
     {
       title: "Mountain Climb",
       artist: "Achievement Sounds",
       duration: "4:15",
       genre: "Epic Orchestral",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
     {
       title: "Lightning Strike",
       artist: "Dynamic Beats",
       duration: "3:52",
       genre: "High-Tempo Electronic",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
   ],
   focused: [
@@ -139,18 +160,21 @@ const musicRecommendations = {
       artist: "Focus Flow",
       duration: "45:00",
       genre: "Study Music",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
     {
       title: "Mental Clarity",
       artist: "Cognitive Enhancers",
       duration: "30:22",
       genre: "Binaural Beats",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
     {
       title: "Productivity Zone",
       artist: "Work Flow Sounds",
       duration: "25:15",
       genre: "Lo-Fi Focus",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
   ],
   nostalgic: [
@@ -159,18 +183,21 @@ const musicRecommendations = {
       artist: "Vintage Hearts",
       duration: "4:33",
       genre: "Nostalgic Pop",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
     {
       title: "Golden Hour",
       artist: "Yesterday's Dreams",
       duration: "5:20",
       genre: "Retro Ambient",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
     {
       title: "Old Photograph",
       artist: "Sentimental Journey",
       duration: "3:47",
       genre: "Vintage Instrumental",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
   ],
   stressed: [
@@ -179,27 +206,67 @@ const musicRecommendations = {
       artist: "Stress Relief Therapy",
       duration: "15:30",
       genre: "Stress Relief",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
     {
       title: "Pressure Valve",
       artist: "Decompression Suite",
       duration: "12:45",
       genre: "Therapeutic Ambient",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
     {
       title: "Unwinding Hour",
       artist: "Relaxation Masters",
       duration: "20:00",
       genre: "Deep Relaxation",
+      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
     },
   ],
 };
 
+interface PlaylistState {
+  currentSong: any | null;
+  isPlaying: boolean;
+  currentTime: number;
+  duration: number;
+  volume: number;
+  isShuffled: boolean;
+  isRepeating: boolean;
+}
+
 const MoodMusic = () => {
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
-  const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [moodConfidence, setMoodConfidence] = useState(0);
+  const [likedSongs, setLikedSongs] = useState<Set<string>>(new Set());
+  const [playlist, setPlaylist] = useState<PlaylistState>({
+    currentSong: null,
+    isPlaying: false,
+    currentTime: 0,
+    duration: 180, // 3 minutes default
+    volume: 75,
+    isShuffled: false,
+    isRepeating: false,
+  });
+
+  const { toast } = useToast();
+
+  // Simulate song progress
+  useEffect(() => {
+    if (playlist.isPlaying && playlist.currentSong) {
+      const interval = setInterval(() => {
+        setPlaylist((prev) => ({
+          ...prev,
+          currentTime:
+            prev.currentTime < prev.duration
+              ? prev.currentTime + 1
+              : prev.duration,
+        }));
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [playlist.isPlaying]);
 
   const handleMoodSelect = (moodId: string) => {
     setSelectedMood(moodId);
@@ -212,6 +279,10 @@ const MoodMusic = () => {
         if (prev >= 95) {
           clearInterval(interval);
           setIsAnalyzing(false);
+          toast({
+            title: "Mood Analysis Complete!",
+            description: `Perfect music recommendations for your ${moodOptions.find((m) => m.id === moodId)?.label} mood.`,
+          });
           return 95;
         }
         return prev + 5;
@@ -219,8 +290,75 @@ const MoodMusic = () => {
     }, 100);
   };
 
-  const togglePlay = (songTitle: string) => {
-    setCurrentlyPlaying(currentlyPlaying === songTitle ? null : songTitle);
+  const togglePlay = (song: any) => {
+    if (playlist.currentSong?.title === song.title) {
+      // Toggle play/pause for current song
+      setPlaylist((prev) => ({ ...prev, isPlaying: !prev.isPlaying }));
+    } else {
+      // Play new song
+      setPlaylist((prev) => ({
+        ...prev,
+        currentSong: song,
+        isPlaying: true,
+        currentTime: 0,
+        duration:
+          parseInt(song.duration.split(":")[0]) * 60 +
+          parseInt(song.duration.split(":")[1]),
+      }));
+      toast({
+        title: "Now Playing",
+        description: `${song.title} by ${song.artist}`,
+      });
+    }
+  };
+
+  const toggleLike = (songTitle: string) => {
+    setLikedSongs((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(songTitle)) {
+        newSet.delete(songTitle);
+        toast({
+          title: "Removed from favorites",
+          description: "Song removed from your liked music.",
+        });
+      } else {
+        newSet.add(songTitle);
+        toast({
+          title: "Added to favorites",
+          description: "Song added to your liked music.",
+        });
+      }
+      return newSet;
+    });
+  };
+
+  const skipToNext = () => {
+    if (!selectedMood) return;
+    const currentPlaylist =
+      musicRecommendations[selectedMood as keyof typeof musicRecommendations];
+    const currentIndex = currentPlaylist.findIndex(
+      (song) => song.title === playlist.currentSong?.title,
+    );
+    const nextIndex = (currentIndex + 1) % currentPlaylist.length;
+    togglePlay(currentPlaylist[nextIndex]);
+  };
+
+  const skipToPrevious = () => {
+    if (!selectedMood) return;
+    const currentPlaylist =
+      musicRecommendations[selectedMood as keyof typeof musicRecommendations];
+    const currentIndex = currentPlaylist.findIndex(
+      (song) => song.title === playlist.currentSong?.title,
+    );
+    const prevIndex =
+      currentIndex <= 0 ? currentPlaylist.length - 1 : currentIndex - 1;
+    togglePlay(currentPlaylist[prevIndex]);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const selectedMoodData = selectedMood
@@ -252,6 +390,115 @@ const MoodMusic = () => {
               well-being journey.
             </p>
           </div>
+
+          {/* Music Player */}
+          {playlist.currentSong && (
+            <Card className="bg-slate-800 border-slate-700 mb-8">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-6">
+                  <div className="w-20 h-20 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+                    <Music className="w-10 h-10 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-white">
+                      {playlist.currentSong.title}
+                    </h3>
+                    <p className="text-slate-400">
+                      {playlist.currentSong.artist}
+                    </p>
+                    <div className="flex items-center space-x-4 mt-4">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={skipToPrevious}
+                        className="text-slate-400 hover:text-white"
+                      >
+                        <SkipBack className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => togglePlay(playlist.currentSong)}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        {playlist.isPlaying ? (
+                          <Pause className="w-4 h-4" />
+                        ) : (
+                          <Play className="w-4 h-4" />
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={skipToNext}
+                        className="text-slate-400 hover:text-white"
+                      >
+                        <SkipForward className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() =>
+                          setPlaylist((prev) => ({
+                            ...prev,
+                            isShuffled: !prev.isShuffled,
+                          }))
+                        }
+                        className={`${playlist.isShuffled ? "text-blue-400" : "text-slate-400"} hover:text-white`}
+                      >
+                        <Shuffle className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() =>
+                          setPlaylist((prev) => ({
+                            ...prev,
+                            isRepeating: !prev.isRepeating,
+                          }))
+                        }
+                        className={`${playlist.isRepeating ? "text-blue-400" : "text-slate-400"} hover:text-white`}
+                      >
+                        <Repeat className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <Volume2 className="w-4 h-4 text-slate-400" />
+                    <Slider
+                      value={[playlist.volume]}
+                      onValueChange={(value) =>
+                        setPlaylist((prev) => ({ ...prev, volume: value[0] }))
+                      }
+                      max={100}
+                      step={1}
+                      className="w-24"
+                    />
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <div className="flex justify-between text-sm text-slate-400 mb-2">
+                    <span>{formatTime(playlist.currentTime)}</span>
+                    <span>{formatTime(playlist.duration)}</span>
+                  </div>
+                  <Progress
+                    value={(playlist.currentTime / playlist.duration) * 100}
+                    className="h-2 cursor-pointer"
+                    onClick={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const clickX = e.clientX - rect.left;
+                      const newTime = Math.floor(
+                        (clickX / rect.width) * playlist.duration,
+                      );
+                      setPlaylist((prev) => ({
+                        ...prev,
+                        currentTime: newTime,
+                      }));
+                    }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Mood Selection */}
           <Card className="bg-slate-800 border-slate-700 mb-8">
@@ -352,9 +599,12 @@ const MoodMusic = () => {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="text-slate-400 hover:text-white"
+                          onClick={() => toggleLike(song.title)}
+                          className={`${likedSongs.has(song.title) ? "text-red-400" : "text-slate-400"} hover:text-red-400`}
                         >
-                          <Heart className="w-4 h-4" />
+                          <Heart
+                            className={`w-4 h-4 ${likedSongs.has(song.title) ? "fill-current" : ""}`}
+                          />
                         </Button>
                       </div>
 
@@ -365,40 +615,41 @@ const MoodMusic = () => {
                         <div className="flex items-center space-x-2">
                           <Button
                             size="sm"
-                            onClick={() => togglePlay(song.title)}
+                            onClick={() => togglePlay(song)}
                             className={`${
-                              currentlyPlaying === song.title
-                                ? "bg-blue-600 hover:bg-blue-700"
-                                : "bg-slate-700 hover:bg-slate-600"
+                              playlist.currentSong?.title === song.title &&
+                              playlist.isPlaying
+                                ? "bg-red-600 hover:bg-red-700"
+                                : "bg-blue-600 hover:bg-blue-700"
                             } text-white`}
                           >
-                            {currentlyPlaying === song.title ? (
+                            {playlist.currentSong?.title === song.title &&
+                            playlist.isPlaying ? (
                               <Pause className="w-4 h-4" />
                             ) : (
                               <Play className="w-4 h-4" />
                             )}
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="text-slate-400 hover:text-white"
-                          >
-                            <SkipForward className="w-4 h-4" />
-                          </Button>
                         </div>
                       </div>
 
-                      {currentlyPlaying === song.title && (
+                      {playlist.currentSong?.title === song.title && (
                         <div className="mt-4 pt-4 border-t border-slate-700">
                           <div className="flex items-center space-x-3">
                             <Headphones className="w-4 h-4 text-blue-400" />
                             <div className="flex-1">
                               <div className="w-full bg-slate-700 rounded-full h-1">
-                                <div className="bg-blue-500 h-1 rounded-full w-1/3 animate-pulse"></div>
+                                <div
+                                  className="bg-blue-500 h-1 rounded-full transition-all duration-1000"
+                                  style={{
+                                    width: `${(playlist.currentTime / playlist.duration) * 100}%`,
+                                  }}
+                                ></div>
                               </div>
                             </div>
                             <span className="text-xs text-slate-400">
-                              1:23 / {song.duration}
+                              {formatTime(playlist.currentTime)} /{" "}
+                              {song.duration}
                             </span>
                           </div>
                         </div>

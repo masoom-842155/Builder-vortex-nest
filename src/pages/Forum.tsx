@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
 import {
   Home,
   MessageSquare,
@@ -25,6 +26,8 @@ import {
   X,
   Paperclip,
   Smile,
+  ThumbsUp,
+  Reply,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -41,7 +44,20 @@ const sidebarItems = [
   { icon: Users, label: "Forum", href: "/forum", id: "forum" },
 ];
 
-const forumMessages = [
+interface ForumMessage {
+  id: number;
+  author: string;
+  role: string;
+  time: string;
+  avatar: string;
+  message: string;
+  isTherapist: boolean;
+  isCurrentUser?: boolean;
+  likes: number;
+  replies: ForumMessage[];
+}
+
+const initialMessages: ForumMessage[] = [
   {
     id: 1,
     author: "Dr. Emily White",
@@ -51,6 +67,8 @@ const forumMessages = [
     message:
       "Welcome everyone to our 'Mindful Moments' community forum! This space is dedicated to sharing positive coping strategies and mindfulness tips. Feel free to ask questions and support each other.",
     isTherapist: true,
+    likes: 12,
+    replies: [],
   },
   {
     id: 2,
@@ -61,6 +79,8 @@ const forumMessages = [
     message:
       "Hi Dr. White! 👋 I'm new here and excited to learn. Does anyone have quick tips for daily gratitude journaling?",
     isTherapist: false,
+    likes: 5,
+    replies: [],
   },
   {
     id: 3,
@@ -72,6 +92,8 @@ const forumMessages = [
       "Hey Sarah! For gratitude, I find using a small notebook by my bedside helpful. I just jot down 3 things every night. Simple, but effective! 😊",
     isTherapist: false,
     isCurrentUser: true,
+    likes: 8,
+    replies: [],
   },
   {
     id: 4,
@@ -82,6 +104,8 @@ const forumMessages = [
     message:
       "That's a great tip, @You ! Consistency is key. Also, try to focus on specific details rather than general statements for deeper impact.",
     isTherapist: true,
+    likes: 15,
+    replies: [],
   },
   {
     id: 5,
@@ -92,6 +116,8 @@ const forumMessages = [
     message:
       "I've been trying guided meditation from the Therapy Suggestions section. It's really calming after a long day. Has anyone else tried it?",
     isTherapist: false,
+    likes: 7,
+    replies: [],
   },
   {
     id: 6,
@@ -103,6 +129,8 @@ const forumMessages = [
       "Yes, @Michael C ! The 'Deep Breath' exercise is my favorite. It helps clear my mind. Highly recommend checking out the Therapy section!",
     isTherapist: false,
     isCurrentUser: true,
+    likes: 6,
+    replies: [],
   },
 ];
 
@@ -112,32 +140,135 @@ const activeThreads = [
     topic: "Daily gratitude journaling tips?",
     time: "10:19 AM",
     avatar: "SJ",
+    replies: 8,
+    lastActivity: "2 min ago",
   },
   {
     author: "Michael C.",
     topic: "Guided meditation experiences?",
     time: "10:30 AM",
     avatar: "MC",
+    replies: 12,
+    lastActivity: "5 min ago",
   },
   {
     author: "Dr. Emily White",
     topic: "Weekly Mindfulness Challenge: Observe your thoughts!",
     time: "9:00 AM",
     avatar: "EW",
+    replies: 23,
+    lastActivity: "1 hour ago",
   },
 ];
 
 const Forum = () => {
   const [newMessage, setNewMessage] = useState("");
+  const [messages, setMessages] = useState<ForumMessage[]>(initialMessages);
   const [showActiveThreads, setShowActiveThreads] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [onlineUsers] = useState(47);
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
   const location = useLocation();
+  const { toast } = useToast();
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Simulate typing indicator
+  useEffect(() => {
+    if (newMessage.length > 0) {
+      setIsTyping(true);
+      const timeout = setTimeout(() => setIsTyping(false), 1000);
+      return () => clearTimeout(timeout);
+    }
+  }, [newMessage]);
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
-      // Handle sending message logic here
+      const newMsg: ForumMessage = {
+        id: messages.length + 1,
+        author: "You",
+        role: "Member",
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        avatar: "ME",
+        message: newMessage,
+        isTherapist: false,
+        isCurrentUser: true,
+        likes: 0,
+        replies: [],
+      };
+
+      setMessages((prev) => [...prev, newMsg]);
       setNewMessage("");
+
+      toast({
+        title: "Message sent!",
+        description: "Your message has been posted to the forum.",
+      });
+
+      // Simulate therapist response
+      if (
+        newMessage.toLowerCase().includes("help") ||
+        newMessage.toLowerCase().includes("advice")
+      ) {
+        setTimeout(() => {
+          const therapistResponse: ForumMessage = {
+            id: messages.length + 2,
+            author: "Dr. Emily White",
+            role: "Therapist",
+            time: new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+            avatar: "EW",
+            message:
+              "Thank you for sharing! Remember that seeking support is a sign of strength. I'd recommend exploring some breathing exercises when you feel overwhelmed. Feel free to reach out anytime.",
+            isTherapist: true,
+            likes: 0,
+            replies: [],
+          };
+          setMessages((prev) => [...prev, therapistResponse]);
+        }, 3000);
+      }
     }
   };
+
+  const handleLikeMessage = (messageId: number) => {
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === messageId ? { ...msg, likes: msg.likes + 1 } : msg,
+      ),
+    );
+
+    toast({
+      title: "Message liked!",
+      description: "You've shown support for this message.",
+    });
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const filteredMessages = messages.filter(
+    (msg) =>
+      searchQuery === "" ||
+      msg.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      msg.author.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   return (
     <div className="min-h-screen bg-slate-950 flex">
@@ -189,6 +320,7 @@ const Forum = () => {
             </Avatar>
             <div className="flex-1">
               <p className="text-sm font-medium text-white">John Doe</p>
+              <p className="text-xs text-green-400">Online</p>
             </div>
           </div>
         </div>
@@ -207,6 +339,12 @@ const Forum = () => {
                     Mindful Moments
                   </h1>
                   <ChevronDown className="w-5 h-5 text-slate-400" />
+                  <Badge
+                    variant="secondary"
+                    className="bg-green-600 text-white"
+                  >
+                    {onlineUsers} online
+                  </Badge>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Search className="w-4 h-4 text-slate-400" />
@@ -217,6 +355,8 @@ const Forum = () => {
                 <Input
                   placeholder="Search forum topics..."
                   className="w-80 bg-slate-800 border-slate-700 text-white placeholder-slate-400"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <Avatar className="w-8 h-8">
                   <AvatarFallback className="bg-blue-600 text-white text-sm">
@@ -229,8 +369,11 @@ const Forum = () => {
 
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
-            {forumMessages.map((message) => (
-              <div key={message.id} className="flex items-start space-x-4">
+            {filteredMessages.map((message) => (
+              <div
+                key={message.id}
+                className="flex items-start space-x-4 group"
+              >
                 <Avatar className="w-10 h-10">
                   <AvatarFallback
                     className={`text-white text-sm ${
@@ -258,12 +401,51 @@ const Forum = () => {
                       {message.time}
                     </span>
                   </div>
-                  <p className="text-slate-300 leading-relaxed">
+                  <p className="text-slate-300 leading-relaxed mb-3">
                     {message.message}
                   </p>
+                  <div className="flex items-center space-x-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleLikeMessage(message.id)}
+                      className="text-slate-400 hover:text-blue-400 h-6 px-2"
+                    >
+                      <ThumbsUp className="w-3 h-3 mr-1" />
+                      {message.likes}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-slate-400 hover:text-blue-400 h-6 px-2"
+                    >
+                      <Reply className="w-3 h-3 mr-1" />
+                      Reply
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}
+
+            {/* Typing Indicator */}
+            {isTyping && (
+              <div className="flex items-center space-x-2 text-slate-400 text-sm">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                  <div
+                    className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
+                    style={{ animationDelay: "0.1s" }}
+                  ></div>
+                  <div
+                    className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
+                    style={{ animationDelay: "0.2s" }}
+                  ></div>
+                </div>
+                <span>Someone is typing...</span>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
           </div>
 
           {/* Message Input */}
@@ -271,19 +453,19 @@ const Forum = () => {
             <div className="flex items-end space-x-4">
               <div className="flex-1">
                 <div className="flex items-center space-x-2 bg-slate-800 rounded-lg p-4">
-                  <Paperclip className="w-5 h-5 text-slate-400" />
-                  <Smile className="w-5 h-5 text-slate-400" />
+                  <Paperclip className="w-5 h-5 text-slate-400 cursor-pointer hover:text-white" />
+                  <Smile className="w-5 h-5 text-slate-400 cursor-pointer hover:text-white" />
                   <Input
                     placeholder="Type your message..."
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+                    onKeyPress={handleKeyPress}
                     className="flex-1 bg-transparent border-none text-white placeholder-slate-400 focus:ring-0"
                   />
                   <Button
                     onClick={handleSendMessage}
                     disabled={!newMessage.trim()}
-                    className="bg-blue-600 hover:bg-blue-700 text-white p-2"
+                    className="bg-blue-600 hover:bg-blue-700 text-white p-2 disabled:opacity-50"
                   >
                     <Send className="w-4 h-4" />
                   </Button>
@@ -328,9 +510,16 @@ const Forum = () => {
                         <p className="text-slate-400 text-sm mt-1 line-clamp-2">
                           {thread.topic}
                         </p>
-                        <p className="text-slate-500 text-xs mt-2">
-                          {thread.time}
-                        </p>
+                        <div className="flex items-center justify-between mt-2">
+                          <p className="text-slate-500 text-xs">
+                            {thread.time}
+                          </p>
+                          <div className="flex items-center space-x-2 text-xs text-slate-400">
+                            <span>{thread.replies} replies</span>
+                            <span>•</span>
+                            <span>{thread.lastActivity}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
