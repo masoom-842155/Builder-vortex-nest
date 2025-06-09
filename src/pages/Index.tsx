@@ -9,6 +9,7 @@ import HowItWorksSection from "@/components/sections/HowItWorksSection";
 import TestimonialsSection from "@/components/sections/TestimonialsSection";
 import CtaSection from "@/components/sections/CtaSection";
 import FooterSection from "@/components/sections/FooterSection";
+import Chatbot from "@/components/chatbot/Chatbot";
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -148,6 +149,9 @@ const Index = () => {
       <TestimonialsSection onTestimonialClick={handleTestimonialClick} />
       <CtaSection onGetStarted={handleGetStarted} isLoading={isLoading} />
       <FooterSection onNewsletterSignup={handleNewsletterSignup} />
+
+      {/* AI-Powered Chatbot */}
+      <Chatbot />
     </div>
   );
 };
