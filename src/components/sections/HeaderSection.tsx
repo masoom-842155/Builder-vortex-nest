@@ -3,6 +3,7 @@ import { Heart, Menu, X, Bell, Settings, LogOut, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -14,95 +15,45 @@ import {
 import LoginModal from "@/components/auth/LoginModal";
 import SignupModal from "@/components/auth/SignupModal";
 
-interface UserData {
-  name: string;
-  email: string;
-  initials: string;
-}
-
 const HeaderSection = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userData, setUserData] = useState<UserData | null>(null);
   const [notifications, setNotifications] = useState(3);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
 
+  const { user, isAuthenticated, login, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Check for stored user data on component mount
-  useEffect(() => {
-    const storedUserData = localStorage.getItem("userData");
-    if (storedUserData) {
-      const user = JSON.parse(storedUserData);
-      setUserData(user);
-      setIsLoggedIn(true);
-    }
-  }, []);
-
   const navLinks = [
     { label: "Home", href: "/" },
-    { label: "Mood Input", href: "/mood-input" },
-    { label: "Mood Music", href: "/mood-music" },
-    { label: "Dashboard", href: "/dashboard" },
-    { label: "Therapy", href: "/therapy" },
-    { label: "Forum", href: "/forum" },
+    { label: "Mood Input", href: "/mood-input", protected: true },
+    { label: "Mood Music", href: "/mood-music", protected: true },
+    { label: "Dashboard", href: "/dashboard", protected: true },
+    { label: "Therapy", href: "/therapy", protected: true },
+    { label: "Forum", href: "/forum", protected: true },
   ];
 
-  const handleLogin = (email: string, password: string) => {
-    // Extract name from email for demo purposes
-    const name = email
-      .split("@")[0]
-      .split(".")
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(" ");
-
-    const initials = name
-      .split(" ")
-      .map((part) => part.charAt(0))
-      .join("")
-      .substring(0, 2);
-
-    const user: UserData = {
-      name,
-      email,
-      initials,
-    };
-
-    setUserData(user);
-    setIsLoggedIn(true);
-
-    // Store user data
-    localStorage.setItem("userData", JSON.stringify(user));
+  const handleLogin = async (email: string, password: string) => {
+    await login(email, password);
+    setShowLoginModal(false);
 
     setTimeout(() => {
       toast({
-        title: `Welcome back, ${name}!`,
+        title: `Welcome back, ${user?.name || "User"}!`,
         description: "You've been successfully logged in.",
       });
     }, 0);
   };
 
-  const handleSignup = (email: string, password: string, name: string) => {
-    const initials = name
-      .split(" ")
-      .map((part) => part.charAt(0))
-      .join("")
-      .substring(0, 2);
-
-    const user: UserData = {
-      name,
-      email,
-      initials,
-    };
-
-    setUserData(user);
-    setIsLoggedIn(true);
-
-    // Store user data
-    localStorage.setItem("userData", JSON.stringify(user));
+  const handleSignup = async (
+    email: string,
+    password: string,
+    name: string,
+  ) => {
+    await login(email, password, name);
+    setShowSignupModal(false);
 
     setTimeout(() => {
       toast({
@@ -113,9 +64,7 @@ const HeaderSection = () => {
   };
 
   const handleSignOut = () => {
-    setIsLoggedIn(false);
-    setUserData(null);
-    localStorage.removeItem("userData");
+    logout();
 
     setTimeout(() => {
       toast({
@@ -128,14 +77,41 @@ const HeaderSection = () => {
   };
 
   const handleGetStarted = () => {
-    if (isLoggedIn) {
+    if (isAuthenticated) {
       navigate("/mood-input");
     } else {
       setShowSignupModal(true);
     }
   };
 
+  const handleProtectedLinkClick = (href: string, isProtected: boolean) => {
+    if (isProtected && !isAuthenticated) {
+      setTimeout(() => {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to access this feature.",
+          variant: "destructive",
+        });
+      }, 0);
+      setShowLoginModal(true);
+      return false;
+    }
+    return true;
+  };
+
   const handleNotificationClick = () => {
+    if (!isAuthenticated) {
+      setTimeout(() => {
+        toast({
+          title: "Sign in Required",
+          description: "Please sign in to view notifications.",
+          variant: "destructive",
+        });
+      }, 0);
+      setShowLoginModal(true);
+      return;
+    }
+
     setNotifications(0);
     setTimeout(() => {
       toast({
@@ -181,13 +157,26 @@ const HeaderSection = () => {
                 <Link
                   key={index}
                   to={link.href}
+                  onClick={(e) => {
+                    if (
+                      !handleProtectedLinkClick(
+                        link.href,
+                        link.protected || false,
+                      )
+                    ) {
+                      e.preventDefault();
+                    }
+                  }}
                   className={`transition-colors duration-200 font-medium relative ${
                     isActive(link.href)
                       ? "text-blue-400"
                       : "text-slate-300 hover:text-blue-400"
-                  }`}
+                  } ${link.protected && !isAuthenticated ? "opacity-60" : ""}`}
                 >
                   {link.label}
+                  {link.protected && !isAuthenticated && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full"></span>
+                  )}
                   {isActive(link.href) && (
                     <div className="absolute -bottom-4 left-0 right-0 h-0.5 bg-blue-400 rounded-full"></div>
                   )}
@@ -197,7 +186,7 @@ const HeaderSection = () => {
 
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center space-x-4">
-              {isLoggedIn && userData ? (
+              {isAuthenticated && user ? (
                 <>
                   {/* Notifications */}
                   <Button
@@ -223,7 +212,7 @@ const HeaderSection = () => {
                       >
                         <Avatar className="h-8 w-8">
                           <AvatarFallback className="bg-blue-600 text-white">
-                            {userData.initials}
+                            {user.initials}
                           </AvatarFallback>
                         </Avatar>
                       </Button>
@@ -235,13 +224,13 @@ const HeaderSection = () => {
                       <div className="flex items-center justify-start gap-2 p-2">
                         <Avatar className="h-8 w-8">
                           <AvatarFallback className="bg-blue-600 text-white">
-                            {userData.initials}
+                            {user.initials}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col space-y-1 leading-none">
-                          <p className="font-medium">{userData.name}</p>
+                          <p className="font-medium">{user.name}</p>
                           <p className="w-[200px] truncate text-sm text-slate-400">
-                            {userData.email}
+                            {user.email}
                           </p>
                         </div>
                       </div>
@@ -311,33 +300,43 @@ const HeaderSection = () => {
                   <Link
                     key={index}
                     to={link.href}
-                    className={`transition-colors duration-200 font-medium px-2 py-1 rounded ${
+                    onClick={(e) => {
+                      if (
+                        !handleProtectedLinkClick(
+                          link.href,
+                          link.protected || false,
+                        )
+                      ) {
+                        e.preventDefault();
+                      } else {
+                        setIsMenuOpen(false);
+                      }
+                    }}
+                    className={`transition-colors duration-200 font-medium px-2 py-1 rounded flex items-center justify-between ${
                       isActive(link.href)
                         ? "text-blue-400 bg-blue-600/10"
                         : "text-slate-300 hover:text-blue-400 hover:bg-slate-800"
-                    }`}
-                    onClick={() => setIsMenuOpen(false)}
+                    } ${link.protected && !isAuthenticated ? "opacity-60" : ""}`}
                   >
-                    {link.label}
+                    <span>{link.label}</span>
+                    {link.protected && !isAuthenticated && (
+                      <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                    )}
                   </Link>
                 ))}
 
                 <div className="flex flex-col space-y-2 pt-4 border-t border-slate-800">
-                  {isLoggedIn && userData ? (
+                  {isAuthenticated && user ? (
                     <>
                       <div className="flex items-center space-x-3 px-2 py-2">
                         <Avatar className="h-8 w-8">
                           <AvatarFallback className="bg-blue-600 text-white">
-                            {userData.initials}
+                            {user.initials}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="text-white font-medium">
-                            {userData.name}
-                          </p>
-                          <p className="text-slate-400 text-sm">
-                            {userData.email}
-                          </p>
+                          <p className="text-white font-medium">{user.name}</p>
+                          <p className="text-slate-400 text-sm">{user.email}</p>
                         </div>
                       </div>
                       <Button

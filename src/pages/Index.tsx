@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import HeaderSection from "@/components/sections/HeaderSection";
 import HeroSection from "@/components/sections/HeroSection";
 import FeaturesSection from "@/components/sections/FeaturesSection";
@@ -11,21 +12,31 @@ import FooterSection from "@/components/sections/FooterSection";
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleGetStarted = async () => {
+    if (isAuthenticated) {
+      // User is logged in, redirect to mood input
+      navigate("/mood-input");
+      return;
+    }
+
+    // User is not logged in, show sign up prompt
     setIsLoading(true);
 
     // Simulate loading
     setTimeout(() => {
       setIsLoading(false);
-      toast({
-        title: "Welcome to RepeatHarmony!",
-        description: "Let's start your mental wellness journey.",
-      });
-      navigate("/mood-input");
-    }, 1500);
+      setTimeout(() => {
+        toast({
+          title: "Authentication Required",
+          description:
+            "Please create an account or sign in to access RepeatHarmony features.",
+        });
+      }, 0);
+    }, 1000);
   };
 
   const handleLearnMore = () => {
@@ -35,14 +46,27 @@ const Index = () => {
       featuresSection.scrollIntoView({ behavior: "smooth" });
     }
 
-    toast({
-      title: "Learn about our features",
-      description:
-        "Discover how RepeatHarmony can help improve your mental wellness.",
-    });
+    setTimeout(() => {
+      toast({
+        title: "Learn about our features",
+        description:
+          "Discover how RepeatHarmony can help improve your mental wellness.",
+      });
+    }, 0);
   };
 
   const handleFeatureExplore = (featureType: string) => {
+    if (!isAuthenticated) {
+      setTimeout(() => {
+        toast({
+          title: "Sign in Required",
+          description: "Create a free account to explore this feature.",
+          variant: "destructive",
+        });
+      }, 0);
+      return;
+    }
+
     switch (featureType) {
       case "mood-tracking":
         navigate("/mood-input");
@@ -69,6 +93,17 @@ const Index = () => {
   };
 
   const handleDashboardView = () => {
+    if (!isAuthenticated) {
+      setTimeout(() => {
+        toast({
+          title: "Authentication Required",
+          description: "Sign in to view your personalized dashboard.",
+          variant: "destructive",
+        });
+      }, 0);
+      return;
+    }
+
     navigate("/dashboard");
     setTimeout(() => {
       toast({
