@@ -1,10 +1,25 @@
 import { Button } from "@/components/ui/button";
-import { Heart, Menu, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Heart, Menu, X, Bell, Settings, LogOut } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const HeaderSection = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [notifications, setNotifications] = useState(3);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const navLinks = [
     { label: "Home", href: "/" },
@@ -15,12 +30,59 @@ const HeaderSection = () => {
     { label: "Forum", href: "/forum" },
   ];
 
+  const handleSignIn = () => {
+    if (!isLoggedIn) {
+      setIsLoggedIn(true);
+      toast({
+        title: "Welcome back!",
+        description: "You've been signed in successfully.",
+      });
+    }
+  };
+
+  const handleSignOut = () => {
+    setIsLoggedIn(false);
+    toast({
+      title: "Signed out",
+      description: "You've been signed out successfully.",
+    });
+    navigate("/");
+  };
+
+  const handleGetStarted = () => {
+    if (isLoggedIn) {
+      navigate("/mood-input");
+    } else {
+      setIsLoggedIn(true);
+      toast({
+        title: "Account created!",
+        description: "Welcome to RepeatHarmony! Let's start your journey.",
+      });
+      navigate("/mood-input");
+    }
+  };
+
+  const handleNotificationClick = () => {
+    setNotifications(0);
+    toast({
+      title: "Notifications",
+      description: "You have new therapy suggestions and forum messages!",
+    });
+  };
+
+  const isActive = (href: string) => {
+    return location.pathname === href;
+  };
+
   return (
     <header className="fixed top-0 w-full bg-slate-900/95 backdrop-blur-sm border-b border-slate-800 z-50">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link
+            to="/"
+            className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+          >
             <Heart className="w-8 h-8 text-blue-400" />
             <span className="text-xl font-bold text-white">RepeatHarmony</span>
           </Link>
@@ -31,21 +93,105 @@ const HeaderSection = () => {
               <Link
                 key={index}
                 to={link.href}
-                className="text-slate-300 hover:text-blue-400 transition-colors duration-200 font-medium"
+                className={`transition-colors duration-200 font-medium relative ${
+                  isActive(link.href)
+                    ? "text-blue-400"
+                    : "text-slate-300 hover:text-blue-400"
+                }`}
               >
                 {link.label}
+                {isActive(link.href) && (
+                  <div className="absolute -bottom-4 left-0 right-0 h-0.5 bg-blue-400 rounded-full"></div>
+                )}
               </Link>
             ))}
           </nav>
 
-          {/* Desktop CTA */}
+          {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost" className="text-slate-300 hover:text-white">
-              Sign In
-            </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-              Get Started
-            </Button>
+            {isLoggedIn ? (
+              <>
+                {/* Notifications */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-slate-300 hover:text-white relative"
+                  onClick={handleNotificationClick}
+                >
+                  <Bell className="w-5 h-5" />
+                  {notifications > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                      {notifications}
+                    </span>
+                  )}
+                </Button>
+
+                {/* User Menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="relative h-8 w-8 rounded-full"
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-blue-600 text-white">
+                          JD
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    className="w-56 bg-slate-800 border-slate-700 text-white"
+                    align="end"
+                  >
+                    <div className="flex items-center justify-start gap-2 p-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-blue-600 text-white">
+                          JD
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col space-y-1 leading-none">
+                        <p className="font-medium">John Doe</p>
+                        <p className="w-[200px] truncate text-sm text-slate-400">
+                          john.doe@example.com
+                        </p>
+                      </div>
+                    </div>
+                    <DropdownMenuSeparator className="bg-slate-700" />
+                    <DropdownMenuItem
+                      className="hover:bg-slate-700 cursor-pointer"
+                      onClick={() => navigate("/dashboard")}
+                    >
+                      <Settings className="mr-2 h-4 w-4" />
+                      Settings
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="hover:bg-slate-700 cursor-pointer text-red-400"
+                      onClick={handleSignOut}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="ghost"
+                  className="text-slate-300 hover:text-white"
+                  onClick={handleSignIn}
+                >
+                  Sign In
+                </Button>
+                <Button
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={handleGetStarted}
+                >
+                  Get Started
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -63,28 +209,78 @@ const HeaderSection = () => {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden border-t border-slate-800 py-4">
+          <div className="md:hidden border-t border-slate-800 py-4 animate-in slide-in-from-top duration-200">
             <nav className="flex flex-col space-y-4">
               {navLinks.map((link, index) => (
                 <Link
                   key={index}
                   to={link.href}
-                  className="text-slate-300 hover:text-blue-400 transition-colors duration-200 font-medium px-2 py-1"
+                  className={`transition-colors duration-200 font-medium px-2 py-1 rounded ${
+                    isActive(link.href)
+                      ? "text-blue-400 bg-blue-600/10"
+                      : "text-slate-300 hover:text-blue-400 hover:bg-slate-800"
+                  }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {link.label}
                 </Link>
               ))}
+
               <div className="flex flex-col space-y-2 pt-4 border-t border-slate-800">
-                <Button
-                  variant="ghost"
-                  className="text-slate-300 hover:text-white justify-start"
-                >
-                  Sign In
-                </Button>
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white justify-start">
-                  Get Started
-                </Button>
+                {isLoggedIn ? (
+                  <>
+                    <div className="flex items-center space-x-3 px-2 py-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-blue-600 text-white">
+                          JD
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-white font-medium">John Doe</p>
+                        <p className="text-slate-400 text-sm">
+                          john.doe@example.com
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      className="text-slate-300 hover:text-white justify-start"
+                      onClick={handleNotificationClick}
+                    >
+                      <Bell className="w-4 h-4 mr-2" />
+                      Notifications
+                      {notifications > 0 && (
+                        <span className="ml-auto w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                          {notifications}
+                        </span>
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="text-red-400 hover:text-red-300 justify-start"
+                      onClick={handleSignOut}
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="ghost"
+                      className="text-slate-300 hover:text-white justify-start"
+                      onClick={handleSignIn}
+                    >
+                      Sign In
+                    </Button>
+                    <Button
+                      className="bg-blue-600 hover:bg-blue-700 text-white justify-start"
+                      onClick={handleGetStarted}
+                    >
+                      Get Started
+                    </Button>
+                  </>
+                )}
               </div>
             </nav>
           </div>
