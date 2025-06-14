@@ -249,6 +249,8 @@ const MoodMusic = () => {
     currentTime: 0,
     duration: 180, // 3 minutes default
     volume: 75,
+    previousVolume: 75,
+    isMuted: false,
     isShuffled: false,
     isRepeating: false,
   });
