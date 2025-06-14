@@ -157,7 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     name: string,
     email: string,
     password: string,
-  ): Promise<void> => {
+  ): Promise<{ needsVerification: boolean }> => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -185,16 +185,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           joinedAt: new Date().toISOString(),
         };
         setUser(mockUser);
-        return;
+        return { needsVerification: false };
       }
       throw new Error(getAuthErrorMessage(error));
     }
 
     if (data.user) {
-      // Create profile in database
-      await createUserProfile(data.user.id, name, email);
-      await fetchUserProfile(data.user.id);
+      // Check if email verification is required
+      if (!data.session) {
+        // Email verification required
+        return { needsVerification: true };
+      } else {
+        // User signed up and logged in immediately (email verification disabled)
+        await createUserProfile(data.user.id, name, email);
+        await fetchUserProfile(data.user.id);
+        return { needsVerification: false };
+      }
     }
+
+    return { needsVerification: false };
   };
 
   const logout = async (): Promise<void> => {
