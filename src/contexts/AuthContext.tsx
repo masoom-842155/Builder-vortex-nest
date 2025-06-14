@@ -225,6 +225,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const resendVerification = async (email: string): Promise<void> => {
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/confirm`,
+      },
+    });
+
+    if (error) {
+      throw new Error(getAuthErrorMessage(error));
+    }
+  };
+
   // Helper function to get user-friendly error messages
   const getAuthErrorMessage = (error: any): string => {
     const message = error?.message || error;
