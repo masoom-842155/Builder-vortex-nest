@@ -21,6 +21,7 @@ import {
   Brain,
   Headphones,
   Volume2,
+  VolumeX,
   Shuffle,
   Repeat,
 } from "lucide-react";
@@ -279,10 +280,13 @@ const MoodMusic = () => {
         if (prev >= 95) {
           clearInterval(interval);
           setIsAnalyzing(false);
-          toast({
-            title: "Mood Analysis Complete!",
-            description: `Perfect music recommendations for your ${moodOptions.find((m) => m.id === moodId)?.label} mood.`,
-          });
+          // Use setTimeout to avoid setState during render
+          setTimeout(() => {
+            toast({
+              title: "Mood Analysis Complete!",
+              description: `Perfect music recommendations for your ${moodOptions.find((m) => m.id === moodId)?.label} mood.`,
+            });
+          }, 0);
           return 95;
         }
         return prev + 5;
@@ -315,19 +319,24 @@ const MoodMusic = () => {
   const toggleLike = (songTitle: string) => {
     setLikedSongs((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(songTitle)) {
+      const isRemoving = newSet.has(songTitle);
+
+      if (isRemoving) {
         newSet.delete(songTitle);
-        toast({
-          title: "Removed from favorites",
-          description: "Song removed from your liked music.",
-        });
       } else {
         newSet.add(songTitle);
-        toast({
-          title: "Added to favorites",
-          description: "Song added to your liked music.",
-        });
       }
+
+      // Use setTimeout to avoid setState during render
+      setTimeout(() => {
+        toast({
+          title: isRemoving ? "Removed from favorites" : "Added to favorites",
+          description: isRemoving
+            ? "Song removed from your liked music."
+            : "Song added to your liked music.",
+        });
+      }, 0);
+
       return newSet;
     });
   };
