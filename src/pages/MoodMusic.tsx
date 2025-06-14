@@ -506,17 +506,29 @@ const MoodMusic = () => {
                       </Button>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-4">
-                    <Volume2 className="w-4 h-4 text-slate-400" />
+                  <div className="flex items-center space-x-3">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={toggleMute}
+                      className="text-slate-400 hover:text-white p-1"
+                    >
+                      {playlist.isMuted || playlist.volume === 0 ? (
+                        <VolumeX className="w-4 h-4" />
+                      ) : (
+                        <Volume2 className="w-4 h-4" />
+                      )}
+                    </Button>
                     <Slider
                       value={[playlist.volume]}
-                      onValueChange={(value) =>
-                        setPlaylist((prev) => ({ ...prev, volume: value[0] }))
-                      }
+                      onValueChange={handleVolumeChange}
                       max={100}
                       step={1}
                       className="w-24"
                     />
+                    <span className="text-xs text-slate-400 w-8 text-right">
+                      {Math.round(playlist.volume)}%
+                    </span>
                   </div>
                 </div>
                 <div className="mt-4">
