@@ -25,11 +25,11 @@ import {
   Check,
   X,
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SignupModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSignup: (email: string, password: string, name: string) => void;
   onSwitchToLogin: () => void;
   trigger?: React.ReactNode;
 }
@@ -37,7 +37,6 @@ interface SignupModalProps {
 const SignupModal = ({
   isOpen,
   onClose,
-  onSignup,
   onSwitchToLogin,
   trigger,
 }: SignupModalProps) => {
@@ -51,87 +50,86 @@ const SignupModal = ({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [error, setError] = useState("");
+
+  const { signup } = useAuth();
   const { toast } = useToast();
-
-  const passwordStrength = (password: string) => {
-    let strength = 0;
-    if (password.length >= 8) strength += 25;
-    if (/[a-z]/.test(password)) strength += 25;
-    if (/[A-Z]/.test(password)) strength += 25;
-    if (/[0-9]/.test(password)) strength += 25;
-    return strength;
-  };
-
-  const passwordRequirements = [
-    { text: "At least 8 characters", met: formData.password.length >= 8 },
-    { text: "One lowercase letter", met: /[a-z]/.test(formData.password) },
-    { text: "One uppercase letter", met: /[A-Z]/.test(formData.password) },
-    { text: "One number", met: /[0-9]/.test(formData.password) },
-  ];
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    setError(""); // Clear error when user types
+  };
+
+  // Password strength calculation
+  const calculatePasswordStrength = (password: string) => {
+    let score = 0;
+    const requirements = {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /\d/.test(password),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+    };
+
+    Object.values(requirements).forEach((met) => {
+      if (met) score += 20;
+    });
+
+    return { score, requirements };
+  };
+
+  const passwordStrength = calculatePasswordStrength(formData.password);
+
+  const getPasswordStrengthColor = (score: number) => {
+    if (score < 40) return "bg-red-500";
+    if (score < 80) return "bg-yellow-500";
+    return "bg-green-500";
+  };
+
+  const getPasswordStrengthText = (score: number) => {
+    if (score < 40) return "Weak";
+    if (score < 80) return "Medium";
+    return "Strong";
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
 
-    if (
-      !formData.name ||
-      !formData.email ||
-      !formData.password ||
-      !formData.confirmPassword
-    ) {
-      setTimeout(() => {
-        toast({
-          title: "Missing Information",
-          description: "Please fill in all fields.",
-          variant: "destructive",
-        });
-      }, 0);
+    // Validation
+    if (!formData.name || !formData.email || !formData.password) {
+      setError("Please fill in all fields.");
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setTimeout(() => {
-        toast({
-          title: "Password Mismatch",
-          description: "Passwords do not match.",
-          variant: "destructive",
-        });
-      }, 0);
+      setError("Passwords do not match.");
       return;
     }
 
-    if (passwordStrength(formData.password) < 75) {
-      setTimeout(() => {
-        toast({
-          title: "Weak Password",
-          description: "Please choose a stronger password.",
-          variant: "destructive",
-        });
-      }, 0);
+    if (passwordStrength.score < 60) {
+      setError("Please create a stronger password.");
       return;
     }
 
     if (!agreeToTerms) {
-      setTimeout(() => {
-        toast({
-          title: "Terms Agreement Required",
-          description: "Please agree to the terms and conditions.",
-          variant: "destructive",
-        });
-      }, 0);
+      setError("Please agree to the terms and conditions.");
       return;
     }
 
     setIsLoading(true);
 
-    // Simulate signup process
-    setTimeout(() => {
-      setIsLoading(false);
-      onSignup(formData.email, formData.password, formData.name);
-      setFormData({ name: "", email: "", password: "", confirmPassword: "" });
+    try {
+      await signup(formData.name, formData.email, formData.password);
+
+      // Reset form
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      });
+
       onClose();
 
       setTimeout(() => {
@@ -140,45 +138,21 @@ const SignupModal = ({
           description: "Your account has been created successfully.",
         });
       }, 0);
-    }, 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Signup failed");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSocialSignup = (provider: string) => {
     setTimeout(() => {
       toast({
         title: `${provider} Signup`,
-        description: `Creating account with ${provider}...`,
+        description: `${provider} signup coming soon! Please use email/password for now.`,
       });
     }, 0);
-
-    // Simulate social signup
-    setTimeout(() => {
-      onSignup(
-        `user@${provider.toLowerCase()}.com`,
-        "social_signup",
-        `${provider} User`,
-      );
-      onClose();
-    }, 2000);
   };
-
-  const strength = passwordStrength(formData.password);
-  const strengthColor =
-    strength < 25
-      ? "bg-red-500"
-      : strength < 50
-        ? "bg-orange-500"
-        : strength < 75
-          ? "bg-yellow-500"
-          : "bg-green-500";
-  const strengthText =
-    strength < 25
-      ? "Weak"
-      : strength < 50
-        ? "Fair"
-        : strength < 75
-          ? "Good"
-          : "Strong";
 
   const content = (
     <Card className="bg-slate-800 border-slate-700 w-full max-w-md">
@@ -194,6 +168,13 @@ const SignupModal = ({
       </CardHeader>
 
       <CardContent className="space-y-6">
+        {/* Error Message */}
+        {error && (
+          <div className="p-3 bg-red-900/50 border border-red-700 rounded-md">
+            <p className="text-red-300 text-sm">{error}</p>
+          </div>
+        )}
+
         {/* Social Signup Buttons */}
         <div className="space-y-3">
           <Button
@@ -203,7 +184,7 @@ const SignupModal = ({
             disabled={isLoading}
           >
             <Chrome className="w-4 h-4 mr-2" />
-            Sign up with Google
+            Continue with Google
           </Button>
           <Button
             variant="outline"
@@ -212,7 +193,7 @@ const SignupModal = ({
             disabled={isLoading}
           >
             <Github className="w-4 h-4 mr-2" />
-            Sign up with GitHub
+            Continue with GitHub
           </Button>
         </div>
 
@@ -298,31 +279,51 @@ const SignupModal = ({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-slate-400">
-                    Password strength
+                    Password strength:
                   </span>
                   <span
-                    className={`text-xs font-medium ${strengthColor.replace("bg-", "text-")}`}
+                    className={`text-xs font-medium ${
+                      passwordStrength.score < 40
+                        ? "text-red-400"
+                        : passwordStrength.score < 80
+                          ? "text-yellow-400"
+                          : "text-green-400"
+                    }`}
                   >
-                    {strengthText}
+                    {getPasswordStrengthText(passwordStrength.score)}
                   </span>
                 </div>
-                <Progress value={strength} className="h-1" />
-
-                {/* Password Requirements */}
-                <div className="grid grid-cols-2 gap-1 text-xs">
-                  {passwordRequirements.map((req, index) => (
-                    <div
-                      key={index}
-                      className={`flex items-center space-x-1 ${req.met ? "text-green-400" : "text-slate-500"}`}
-                    >
-                      {req.met ? (
-                        <Check className="w-3 h-3" />
-                      ) : (
-                        <X className="w-3 h-3" />
-                      )}
-                      <span>{req.text}</span>
-                    </div>
-                  ))}
+                <Progress
+                  value={passwordStrength.score}
+                  className="h-2"
+                  indicatorClassName={getPasswordStrengthColor(
+                    passwordStrength.score,
+                  )}
+                />
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {Object.entries(passwordStrength.requirements).map(
+                    ([key, met]) => (
+                      <div
+                        key={key}
+                        className={`flex items-center space-x-1 ${
+                          met ? "text-green-400" : "text-slate-400"
+                        }`}
+                      >
+                        {met ? (
+                          <Check className="w-3 h-3" />
+                        ) : (
+                          <X className="w-3 h-3" />
+                        )}
+                        <span className="capitalize">
+                          {key === "length"
+                            ? "8+ chars"
+                            : key === "special"
+                              ? "Symbol"
+                              : key}
+                        </span>
+                      </div>
+                    ),
+                  )}
                 </div>
               </div>
             )}
@@ -376,20 +377,20 @@ const SignupModal = ({
             />
             <Label htmlFor="terms" className="text-sm text-slate-400">
               I agree to the{" "}
-              <Button
-                variant="link"
-                className="text-blue-400 hover:text-blue-300 p-0 h-auto text-sm"
-                disabled={isLoading}
-              >
-                Terms & Conditions
-              </Button>
+              <span className="text-blue-400 hover:text-blue-300 cursor-pointer">
+                Terms of Service
+              </span>{" "}
+              and{" "}
+              <span className="text-blue-400 hover:text-blue-300 cursor-pointer">
+                Privacy Policy
+              </span>
             </Label>
           </div>
 
           <Button
             type="submit"
             className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-            disabled={isLoading}
+            disabled={isLoading || passwordStrength.score < 60 || !agreeToTerms}
           >
             {isLoading ? (
               <>
