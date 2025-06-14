@@ -149,10 +149,9 @@ const Index = () => {
       <HowItWorksSection onViewDashboard={handleDashboardView} />
       <TestimonialsSection onTestimonialClick={handleTestimonialClick} />
       <CtaSection onGetStarted={handleGetStarted} isLoading={isLoading} />
-      <FooterSection onNewsletterSignup={handleNewsletterSignup} />
-
-      {/* AI-Powered Chatbot */}
+      <FooterSection />
       <Chatbot />
+      <AuthDebug />
     </div>
   );
 };
