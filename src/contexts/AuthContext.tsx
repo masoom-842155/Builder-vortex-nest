@@ -270,6 +270,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signup,
     logout,
     resetPassword,
+    resendVerification,
     isAuthenticated: !!user,
     loading,
   };
