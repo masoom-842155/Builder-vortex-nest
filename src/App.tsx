@@ -7,10 +7,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import MoodMusic from "./pages/MoodMusic";
-import MoodInput from "./pages/MoodInput";
-import Dashboard from "./pages/Dashboard";
 import Therapy from "./pages/Therapy";
-import Forum from "./pages/Forum";
+import EmailConfirm from "./pages/EmailConfirm";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
