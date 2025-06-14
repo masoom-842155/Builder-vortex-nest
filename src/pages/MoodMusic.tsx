@@ -571,6 +571,14 @@ const MoodMusic = () => {
     <div className="min-h-screen bg-slate-950">
       <HeaderSection />
 
+      {/* Hidden Audio Element */}
+      <audio
+        ref={audioRef}
+        preload="metadata"
+        crossOrigin="anonymous"
+        style={{ display: "none" }}
+      />
+
       <div className="pt-20 px-6 py-12">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
