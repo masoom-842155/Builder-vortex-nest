@@ -486,12 +486,33 @@ const MoodMusic = () => {
     const currentIndex = currentPlaylist.findIndex(
       (song) => song.title === playlist.currentSong?.title,
     );
-    const nextIndex = (currentIndex + 1) % currentPlaylist.length;
+    let nextIndex;
+
+    if (playlist.isShuffled) {
+      // Random next song (excluding current)
+      const availableIndices = currentPlaylist
+        .map((_, index) => index)
+        .filter((index) => index !== currentIndex);
+      nextIndex =
+        availableIndices[Math.floor(Math.random() * availableIndices.length)];
+    } else {
+      nextIndex = (currentIndex + 1) % currentPlaylist.length;
+    }
+
     togglePlay(currentPlaylist[nextIndex]);
   };
 
   const skipToPrevious = () => {
     if (!selectedMood) return;
+    const audio = audioRef.current;
+
+    // If more than 3 seconds into the song, restart it
+    if (audio && audio.currentTime > 3) {
+      audio.currentTime = 0;
+      setPlaylist((prev) => ({ ...prev, currentTime: 0 }));
+      return;
+    }
+
     const currentPlaylist =
       musicRecommendations[selectedMood as keyof typeof musicRecommendations];
     const currentIndex = currentPlaylist.findIndex(
