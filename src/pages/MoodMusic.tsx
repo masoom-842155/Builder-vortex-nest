@@ -277,21 +277,93 @@ const MoodMusic = () => {
   const { toast } = useToast();
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Simulate song progress
+  // Real audio progress tracking
   useEffect(() => {
-    if (playlist.isPlaying && playlist.currentSong) {
-      const interval = setInterval(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const updateProgress = () => {
+      setPlaylist((prev) => ({
+        ...prev,
+        currentTime: Math.floor(audio.currentTime),
+        duration: Math.floor(audio.duration) || prev.duration,
+      }));
+    };
+
+    const handleLoadedMetadata = () => {
+      setPlaylist((prev) => ({
+        ...prev,
+        duration: Math.floor(audio.duration),
+      }));
+      setIsLoading(false);
+    };
+
+    const handleEnded = () => {
+      setPlaylist((prev) => ({
+        ...prev,
+        isPlaying: false,
+        currentTime: 0,
+      }));
+
+      // Auto-play next song if not repeating
+      if (!playlist.isRepeating) {
+        setTimeout(() => skipToNext(), 500);
+      } else {
+        // Restart the current song
+        audio.currentTime = 0;
         setPlaylist((prev) => ({
           ...prev,
-          currentTime:
-            prev.currentTime < prev.duration
-              ? prev.currentTime + 1
-              : prev.duration,
+          isPlaying: true,
+          currentTime: 0,
         }));
-      }, 1000);
-      return () => clearInterval(interval);
+        audio.play();
+      }
+    };
+
+    const handleCanPlay = () => {
+      setIsLoading(false);
+    };
+
+    const handleWaiting = () => {
+      setIsLoading(true);
+    };
+
+    const handleError = () => {
+      setIsLoading(false);
+      setTimeout(() => {
+        toast({
+          title: "Audio Error",
+          description: "Failed to load audio. Trying next song...",
+          variant: "destructive",
+        });
+      }, 0);
+      setTimeout(() => skipToNext(), 1000);
+    };
+
+    audio.addEventListener("timeupdate", updateProgress);
+    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
+    audio.addEventListener("ended", handleEnded);
+    audio.addEventListener("canplay", handleCanPlay);
+    audio.addEventListener("waiting", handleWaiting);
+    audio.addEventListener("error", handleError);
+
+    return () => {
+      audio.removeEventListener("timeupdate", updateProgress);
+      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      audio.removeEventListener("ended", handleEnded);
+      audio.removeEventListener("canplay", handleCanPlay);
+      audio.removeEventListener("waiting", handleWaiting);
+      audio.removeEventListener("error", handleError);
+    };
+  }, [playlist.currentSong]);
+
+  // Sync audio volume with state
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.volume = playlist.volume / 100;
     }
-  }, [playlist.isPlaying]);
+  }, [playlist.volume]);
 
   const handleMoodSelect = (moodId: string) => {
     setSelectedMood(moodId);
