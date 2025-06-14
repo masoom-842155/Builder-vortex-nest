@@ -153,6 +153,7 @@ const Index = () => {
       <FooterSection />
       <Chatbot />
       <AuthDebug />
+      <AuthTester />
     </div>
   );
 };
