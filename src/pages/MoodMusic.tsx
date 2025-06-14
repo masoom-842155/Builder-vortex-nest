@@ -674,15 +674,18 @@ const MoodMusic = () => {
                     value={(playlist.currentTime / playlist.duration) * 100}
                     className="h-2 cursor-pointer"
                     onClick={(e) => {
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const clickX = e.clientX - rect.left;
-                      const newTime = Math.floor(
-                        (clickX / rect.width) * playlist.duration,
-                      );
-                      setPlaylist((prev) => ({
-                        ...prev,
-                        currentTime: newTime,
-                      }));
+                      const audio = audioRef.current;
+                      if (audio && playlist.duration > 0) {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const clickX = e.clientX - rect.left;
+                        const newTime =
+                          (clickX / rect.width) * playlist.duration;
+                        audio.currentTime = newTime;
+                        setPlaylist((prev) => ({
+                          ...prev,
+                          currentTime: Math.floor(newTime),
+                        }));
+                      }
                     }}
                   />
                 </div>
