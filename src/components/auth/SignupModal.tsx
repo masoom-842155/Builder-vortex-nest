@@ -123,24 +123,51 @@ const SignupModal = ({
     setIsLoading(true);
 
     try {
-      await signup(formData.name, formData.email, formData.password);
+      const result = await signup(
+        formData.name,
+        formData.email,
+        formData.password,
+      );
 
-      // Reset form
-      setFormData({
-        name: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-      });
+      if (result.needsVerification) {
+        // Show email verification modal
+        setSignupEmail(formData.email);
+        setShowEmailVerification(true);
+        onClose(); // Close signup modal
 
-      onClose();
-
-      setTimeout(() => {
-        toast({
-          title: "Welcome to RepeatHarmony!",
-          description: "Your account has been created successfully.",
+        // Reset form
+        setFormData({
+          name: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
         });
-      }, 0);
+
+        setTimeout(() => {
+          toast({
+            title: "Account Created!",
+            description: "Please check your email to verify your account.",
+          });
+        }, 0);
+      } else {
+        // Direct signup (no email verification needed)
+        // Reset form
+        setFormData({
+          name: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+        });
+
+        onClose();
+
+        setTimeout(() => {
+          toast({
+            title: "Welcome to RepeatHarmony!",
+            description: "Your account has been created successfully.",
+          });
+        }, 0);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Signup failed");
     } finally {
