@@ -597,8 +597,11 @@ const MoodMusic = () => {
                         size="sm"
                         onClick={() => togglePlay(playlist.currentSong)}
                         className="bg-blue-600 hover:bg-blue-700"
+                        disabled={isLoading}
                       >
-                        {playlist.isPlaying ? (
+                        {isLoading ? (
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : playlist.isPlaying ? (
                           <Pause className="w-4 h-4" />
                         ) : (
                           <Play className="w-4 h-4" />
