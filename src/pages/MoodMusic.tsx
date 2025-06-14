@@ -70,21 +70,24 @@ const musicRecommendations = {
       artist: "Melancholy Sounds",
       duration: "5:43",
       genre: "Ambient Sad",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+      audioUrl:
+        "https://actions.google.com/sounds/v1/weather/rain_on_concrete.ogg",
     },
     {
       title: "Quiet Reflection",
       artist: "Somber Piano",
       duration: "4:28",
       genre: "Emotional Piano",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+      audioUrl:
+        "https://actions.google.com/sounds/v1/instruments/piano_chords_1.ogg",
     },
     {
       title: "Healing Tears",
       artist: "Therapeutic Strings",
       duration: "6:15",
       genre: "Cathartic Classical",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+      audioUrl:
+        "https://actions.google.com/sounds/v1/instruments/violin_c5_scale_trill.ogg",
     },
   ],
   anxious: [
@@ -93,21 +96,24 @@ const musicRecommendations = {
       artist: "Anxiety Relief",
       duration: "8:30",
       genre: "Calming Meditation",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+      audioUrl:
+        "https://actions.google.com/sounds/v1/water/water_bubbling_and_dripping_into_pool.ogg",
     },
     {
       title: "Safe Harbor",
       artist: "Peaceful Mind",
       duration: "5:45",
       genre: "Grounding Ambient",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+      audioUrl:
+        "https://actions.google.com/sounds/v1/ambiences/forest_birds_chirping.ogg",
     },
     {
       title: "Steady Heartbeat",
       artist: "Rhythmic Therapy",
       duration: "7:20",
       genre: "Stabilizing Sounds",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+      audioUrl:
+        "https://actions.google.com/sounds/v1/clock/grandfather_clock_ticking.ogg",
     },
   ],
   calm: [
@@ -116,21 +122,23 @@ const musicRecommendations = {
       artist: "Tranquil Waves",
       duration: "10:15",
       genre: "Nature Sounds",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+      audioUrl:
+        "https://actions.google.com/sounds/v1/water/ocean_waves_crashing.ogg",
     },
     {
       title: "Moonlight Meditation",
       artist: "Zen Garden",
       duration: "12:30",
       genre: "Meditation Music",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+      audioUrl: "https://actions.google.com/sounds/v1/zen/meditation_bell.ogg",
     },
     {
       title: "Peaceful Valley",
       artist: "Serenity Composers",
       duration: "8:45",
       genre: "Ambient Peace",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+      audioUrl:
+        "https://actions.google.com/sounds/v1/ambiences/wind_through_trees.ogg",
     },
   ],
   energetic: [
