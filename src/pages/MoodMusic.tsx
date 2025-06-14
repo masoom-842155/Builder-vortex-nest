@@ -147,21 +147,24 @@ const musicRecommendations = {
       artist: "High Energy Collective",
       duration: "3:28",
       genre: "Motivational EDM",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+      audioUrl:
+        "https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg",
     },
     {
       title: "Mountain Climb",
       artist: "Achievement Sounds",
       duration: "4:15",
       genre: "Epic Orchestral",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+      audioUrl:
+        "https://actions.google.com/sounds/v1/instruments/trumpet_fanfare.ogg",
     },
     {
       title: "Lightning Strike",
       artist: "Dynamic Beats",
       duration: "3:52",
       genre: "High-Tempo Electronic",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+      audioUrl:
+        "https://actions.google.com/sounds/v1/weather/thunder_crack.ogg",
     },
   ],
   focused: [
@@ -170,21 +173,23 @@ const musicRecommendations = {
       artist: "Focus Flow",
       duration: "45:00",
       genre: "Study Music",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+      audioUrl:
+        "https://actions.google.com/sounds/v1/water/water_drops_onto_hard_surface.ogg",
     },
     {
       title: "Mental Clarity",
       artist: "Cognitive Enhancers",
       duration: "30:22",
       genre: "Binaural Beats",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+      audioUrl: "https://actions.google.com/sounds/v1/zen/soft_bells.ogg",
     },
     {
       title: "Productivity Zone",
       artist: "Work Flow Sounds",
       duration: "25:15",
       genre: "Lo-Fi Focus",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+      audioUrl:
+        "https://actions.google.com/sounds/v1/clock/wall_clock_ticking.ogg",
     },
   ],
   nostalgic: [
@@ -193,21 +198,24 @@ const musicRecommendations = {
       artist: "Vintage Hearts",
       duration: "4:33",
       genre: "Nostalgic Pop",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+      audioUrl:
+        "https://actions.google.com/sounds/v1/instruments/music_box_arpeggio_01.ogg",
     },
     {
       title: "Golden Hour",
       artist: "Yesterday's Dreams",
       duration: "5:20",
       genre: "Retro Ambient",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+      audioUrl:
+        "https://actions.google.com/sounds/v1/instruments/piano_lonesome_melody.ogg",
     },
     {
       title: "Old Photograph",
       artist: "Sentimental Journey",
       duration: "3:47",
       genre: "Vintage Instrumental",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+      audioUrl:
+        "https://actions.google.com/sounds/v1/instruments/acoustic_guitar_picking_melody.ogg",
     },
   ],
   stressed: [
@@ -216,21 +224,22 @@ const musicRecommendations = {
       artist: "Stress Relief Therapy",
       duration: "15:30",
       genre: "Stress Relief",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+      audioUrl:
+        "https://actions.google.com/sounds/v1/water/stream_over_rocks.ogg",
     },
     {
       title: "Pressure Valve",
       artist: "Decompression Suite",
       duration: "12:45",
       genre: "Therapeutic Ambient",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+      audioUrl: "https://actions.google.com/sounds/v1/zen/temple_bells.ogg",
     },
     {
       title: "Unwinding Hour",
       artist: "Relaxation Masters",
       duration: "20:00",
       genre: "Deep Relaxation",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+      audioUrl: "https://actions.google.com/sounds/v1/ambiences/soft_rain.ogg",
     },
   ],
 };
