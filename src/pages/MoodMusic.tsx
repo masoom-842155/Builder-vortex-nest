@@ -272,8 +272,10 @@ const MoodMusic = () => {
     isShuffled: false,
     isRepeating: false,
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const { toast } = useToast();
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   // Simulate song progress
   useEffect(() => {
