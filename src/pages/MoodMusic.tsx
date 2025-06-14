@@ -390,25 +390,67 @@ const MoodMusic = () => {
     }, 100);
   };
 
-  const togglePlay = (song: any) => {
+  const togglePlay = async (song: any) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
     if (playlist.currentSong?.title === song.title) {
       // Toggle play/pause for current song
-      setPlaylist((prev) => ({ ...prev, isPlaying: !prev.isPlaying }));
+      if (playlist.isPlaying) {
+        audio.pause();
+        setPlaylist((prev) => ({ ...prev, isPlaying: false }));
+      } else {
+        setIsLoading(true);
+        try {
+          await audio.play();
+          setPlaylist((prev) => ({ ...prev, isPlaying: true }));
+          setIsLoading(false);
+        } catch (error) {
+          setIsLoading(false);
+          setTimeout(() => {
+            toast({
+              title: "Playback Error",
+              description: "Unable to play audio. Please try again.",
+              variant: "destructive",
+            });
+          }, 0);
+        }
+      }
     } else {
       // Play new song
+      setIsLoading(true);
       setPlaylist((prev) => ({
         ...prev,
         currentSong: song,
-        isPlaying: true,
+        isPlaying: false,
         currentTime: 0,
         duration:
           parseInt(song.duration.split(":")[0]) * 60 +
           parseInt(song.duration.split(":")[1]),
       }));
-      toast({
-        title: "Now Playing",
-        description: `${song.title} by ${song.artist}`,
-      });
+
+      audio.src = song.audioUrl;
+      audio.load();
+
+      try {
+        await audio.play();
+        setPlaylist((prev) => ({ ...prev, isPlaying: true }));
+        setTimeout(() => {
+          toast({
+            title: "Now Playing",
+            description: `${song.title} by ${song.artist}`,
+          });
+        }, 0);
+      } catch (error) {
+        setIsLoading(false);
+        setTimeout(() => {
+          toast({
+            title: "Playback Error",
+            description: "Unable to play audio. Please check your connection.",
+            variant: "destructive",
+          });
+        }, 0);
+      }
     }
   };
 
