@@ -448,22 +448,31 @@ const SignupModal = ({
     </Card>
   );
 
-  if (trigger) {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogTrigger asChild>{trigger}</DialogTrigger>
-        <DialogContent className="bg-transparent border-none shadow-none p-0 max-w-md">
-          {content}
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  return (
+    <>
+      {trigger ? (
+        <Dialog open={isOpen} onOpenChange={onClose}>
+          <DialogTrigger asChild>{trigger}</DialogTrigger>
+          <DialogContent className="bg-transparent border-none shadow-none p-0 max-w-md">
+            {content}
+          </DialogContent>
+        </Dialog>
+      ) : (
+        isOpen && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="w-full max-w-md">{content}</div>
+          </div>
+        )
+      )}
 
-  return isOpen ? (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="w-full max-w-md">{content}</div>
-    </div>
-  ) : null;
+      {/* Email Verification Modal */}
+      <EmailVerificationModal
+        isOpen={showEmailVerification}
+        onClose={() => setShowEmailVerification(false)}
+        email={signupEmail}
+      />
+    </>
+  );
 };
 
 export default SignupModal;
