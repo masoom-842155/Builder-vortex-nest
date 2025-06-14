@@ -404,15 +404,13 @@ const HeaderSection = () => {
       <LoginModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
-        onLogin={handleLogin}
-        onSwitchToSignup={switchToSignup}
+        onSwitchToSignup={handleSwitchToSignup}
       />
 
       <SignupModal
         isOpen={showSignupModal}
         onClose={() => setShowSignupModal(false)}
-        onSignup={handleSignup}
-        onSwitchToLogin={switchToLogin}
+        onSwitchToLogin={handleSwitchToLogin}
       />
     </>
   );
