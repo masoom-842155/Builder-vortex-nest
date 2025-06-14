@@ -212,8 +212,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Helper function to get user-friendly error messages
-  const getAuthErrorMessage = (error: AuthError): string => {
-    switch (error.message) {
+  const getAuthErrorMessage = (error: any): string => {
+    const message = error?.message || error;
+
+    if (message.includes("Demo mode")) {
+      return "Demo Mode: Supabase not configured. Using local authentication.";
+    }
+
+    switch (message) {
       case "Invalid login credentials":
         return "Invalid email or password. Please try again.";
       case "User already registered":
@@ -225,7 +231,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       case "Unable to validate email address: invalid format":
         return "Please provide a valid email address.";
       default:
-        return error.message || "An unexpected error occurred.";
+        return message || "An unexpected error occurred.";
     }
   };
 
