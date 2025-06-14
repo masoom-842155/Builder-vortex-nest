@@ -6,9 +6,14 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
+  signup: (
+    name: string,
+    email: string,
+    password: string,
+  ) => Promise<{ needsVerification: boolean }>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  resendVerification: (email: string) => Promise<void>;
   isAuthenticated: boolean;
   loading: boolean;
 }
