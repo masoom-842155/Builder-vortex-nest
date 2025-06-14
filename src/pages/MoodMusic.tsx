@@ -232,6 +232,8 @@ interface PlaylistState {
   currentTime: number;
   duration: number;
   volume: number;
+  previousVolume: number;
+  isMuted: boolean;
   isShuffled: boolean;
   isRepeating: boolean;
 }
