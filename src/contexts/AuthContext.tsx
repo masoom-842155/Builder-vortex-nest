@@ -127,6 +127,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     if (error) {
+      // Check if it's a demo mode error
+      if (error.message.includes("Demo mode")) {
+        // Create a mock user for demo purposes
+        const mockUser: User = {
+          id: `demo_${Date.now()}`,
+          name: email.split("@")[0],
+          email,
+          initials: email.slice(0, 2).toUpperCase(),
+          joinedAt: new Date().toISOString(),
+        };
+        setUser(mockUser);
+        return;
+      }
       throw new Error(getAuthErrorMessage(error));
     }
 
@@ -151,6 +164,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     if (error) {
+      // Check if it's a demo mode error
+      if (error.message.includes("Demo mode")) {
+        // Create a mock user for demo purposes
+        const mockUser: User = {
+          id: `demo_${Date.now()}`,
+          name,
+          email,
+          initials: name
+            .split(" ")
+            .map((n) => n[0])
+            .join("")
+            .toUpperCase()
+            .slice(0, 2),
+          joinedAt: new Date().toISOString(),
+        };
+        setUser(mockUser);
+        return;
+      }
       throw new Error(getAuthErrorMessage(error));
     }
 
