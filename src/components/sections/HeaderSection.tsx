@@ -45,17 +45,27 @@ const HeaderSection = () => {
     setShowLoginModal(true);
   };
 
-  const handleSignOut = () => {
-    logout();
+  const handleSignOut = async () => {
+    try {
+      await logout();
 
-    setTimeout(() => {
-      toast({
-        title: "Signed out",
-        description: "You've been signed out successfully.",
-      });
-    }, 0);
+      setTimeout(() => {
+        toast({
+          title: "Signed out",
+          description: "You've been signed out successfully.",
+        });
+      }, 0);
 
-    navigate("/");
+      navigate("/");
+    } catch (error) {
+      setTimeout(() => {
+        toast({
+          title: "Error",
+          description: "Failed to sign out. Please try again.",
+          variant: "destructive",
+        });
+      }, 0);
+    }
   };
 
   const handleGetStarted = () => {
