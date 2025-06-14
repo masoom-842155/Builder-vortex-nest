@@ -52,6 +52,8 @@ const SignupModal = ({
   const [isLoading, setIsLoading] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [error, setError] = useState("");
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [signupEmail, setSignupEmail] = useState("");
 
   const { signup } = useAuth();
   const { toast } = useToast();
