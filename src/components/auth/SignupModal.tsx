@@ -26,6 +26,7 @@ import {
   X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import EmailVerificationModal from "./EmailVerificationModal";
 
 interface SignupModalProps {
   isOpen: boolean;
