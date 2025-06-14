@@ -21,23 +21,21 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Public Routes */}
             <Route path="/" element={<Index />} />
-
-            {/* Protected Routes - Require Authentication */}
-            <Route
-              path="/mood-music"
-              element={
-                <ProtectedRoute>
-                  <MoodMusic />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/auth/confirm" element={<EmailConfirm />} />
             <Route
               path="/mood-input"
               element={
                 <ProtectedRoute>
                   <MoodInput />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mood-music"
+              element={
+                <ProtectedRoute>
+                  <MoodMusic />
                 </ProtectedRoute>
               }
             />
@@ -65,9 +63,8 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-
-            {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
+          </Routes>
           </Routes>
         </BrowserRouter>
       </AuthProvider>
