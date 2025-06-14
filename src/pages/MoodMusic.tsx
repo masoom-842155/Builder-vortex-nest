@@ -374,6 +374,37 @@ const MoodMusic = () => {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
+  const toggleMute = () => {
+    setPlaylist((prev) => {
+      if (prev.isMuted) {
+        // Unmute: restore previous volume
+        return {
+          ...prev,
+          volume: prev.previousVolume,
+          isMuted: false,
+        };
+      } else {
+        // Mute: save current volume and set to 0
+        return {
+          ...prev,
+          previousVolume: prev.volume,
+          volume: 0,
+          isMuted: true,
+        };
+      }
+    });
+  };
+
+  const handleVolumeChange = (value: number[]) => {
+    const newVolume = value[0];
+    setPlaylist((prev) => ({
+      ...prev,
+      volume: newVolume,
+      isMuted: newVolume === 0,
+      previousVolume: newVolume > 0 ? newVolume : prev.previousVolume,
+    }));
+  };
+
   const selectedMoodData = selectedMood
     ? moodOptions.find((m) => m.id === selectedMood)
     : null;
