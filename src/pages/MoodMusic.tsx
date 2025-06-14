@@ -53,14 +53,15 @@ const musicRecommendations = {
       artist: "Positive Vibes Collective",
       duration: "4:12",
       genre: "Feel-Good Electronic",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+      audioUrl:
+        "https://actions.google.com/sounds/v1/alarms/medium_bell_ringing_near.ogg",
     },
     {
       title: "Bright Morning",
       artist: "Sunshine Orchestra",
       duration: "2:58",
       genre: "Upbeat Instrumental",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+      audioUrl: "https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg",
     },
   ],
   sad: [
