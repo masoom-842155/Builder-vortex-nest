@@ -841,6 +841,10 @@ const MoodMusic = () => {
                           <Button
                             size="sm"
                             onClick={() => togglePlay(song)}
+                            disabled={
+                              isLoading &&
+                              playlist.currentSong?.title === song.title
+                            }
                             className={`${
                               playlist.currentSong?.title === song.title &&
                               playlist.isPlaying
@@ -848,8 +852,11 @@ const MoodMusic = () => {
                                 : "bg-blue-600 hover:bg-blue-700"
                             } text-white`}
                           >
-                            {playlist.currentSong?.title === song.title &&
-                            playlist.isPlaying ? (
+                            {isLoading &&
+                            playlist.currentSong?.title === song.title ? (
+                              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            ) : playlist.currentSong?.title === song.title &&
+                              playlist.isPlaying ? (
                               <Pause className="w-4 h-4" />
                             ) : (
                               <Play className="w-4 h-4" />
