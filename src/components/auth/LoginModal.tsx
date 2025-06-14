@@ -13,11 +13,11 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Eye, EyeOff, Mail, Lock, Heart, Github, Chrome } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (email: string, password: string) => void;
   onSwitchToSignup: () => void;
   trigger?: React.ReactNode;
 }
@@ -25,7 +25,6 @@ interface LoginModalProps {
 const LoginModal = ({
   isOpen,
   onClose,
-  onLogin,
   onSwitchToSignup,
   trigger,
 }: LoginModalProps) => {
@@ -34,28 +33,24 @@ const LoginModal = ({
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState("");
+
+  const { login, resetPassword } = useAuth();
   const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
 
     if (!email || !password) {
-      setTimeout(() => {
-        toast({
-          title: "Missing Information",
-          description: "Please fill in all fields.",
-          variant: "destructive",
-        });
-      }, 0);
+      setError("Please fill in all fields.");
       return;
     }
 
     setIsLoading(true);
 
-    // Simulate login process
-    setTimeout(() => {
-      setIsLoading(false);
-      onLogin(email, password);
+    try {
+      await login(email, password);
       setEmail("");
       setPassword("");
       onClose();
@@ -66,22 +61,41 @@ const LoginModal = ({
           description: "You've been successfully logged in.",
         });
       }, 0);
-    }, 1500);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Login failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError("Please enter your email address first.");
+      return;
+    }
+
+    try {
+      await resetPassword(email);
+      setTimeout(() => {
+        toast({
+          title: "Password Reset",
+          description: "Password reset link sent to your email.",
+        });
+      }, 0);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to send reset email",
+      );
+    }
   };
 
   const handleSocialLogin = (provider: string) => {
     setTimeout(() => {
       toast({
         title: `${provider} Login`,
-        description: `Logging in with ${provider}...`,
+        description: `${provider} login coming soon! Please use email/password for now.`,
       });
     }, 0);
-
-    // Simulate social login
-    setTimeout(() => {
-      onLogin(`user@${provider.toLowerCase()}.com`, "social_login");
-      onClose();
-    }, 2000);
   };
 
   const content = (
@@ -98,6 +112,13 @@ const LoginModal = ({
       </CardHeader>
 
       <CardContent className="space-y-6">
+        {/* Error Message */}
+        {error && (
+          <div className="p-3 bg-red-900/50 border border-red-700 rounded-md">
+            <p className="text-red-300 text-sm">{error}</p>
+          </div>
+        )}
+
         {/* Social Login Buttons */}
         <div className="space-y-3">
           <Button
@@ -194,17 +215,11 @@ const LoginModal = ({
               </Label>
             </div>
             <Button
+              type="button"
               variant="link"
               className="text-blue-400 hover:text-blue-300 p-0 h-auto"
               disabled={isLoading}
-              onClick={() => {
-                setTimeout(() => {
-                  toast({
-                    title: "Password Reset",
-                    description: "Password reset link sent to your email.",
-                  });
-                }, 0);
-              }}
+              onClick={handleForgotPassword}
             >
               Forgot password?
             </Button>
