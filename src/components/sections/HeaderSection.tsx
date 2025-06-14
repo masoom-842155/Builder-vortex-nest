@@ -35,32 +35,14 @@ const HeaderSection = () => {
     { label: "Forum", href: "/forum", protected: true },
   ];
 
-  const handleLogin = async (email: string, password: string) => {
-    await login(email, password);
+  const handleSwitchToSignup = () => {
     setShowLoginModal(false);
-
-    setTimeout(() => {
-      toast({
-        title: `Welcome back, ${user?.name || "User"}!`,
-        description: "You've been successfully logged in.",
-      });
-    }, 0);
+    setShowSignupModal(true);
   };
 
-  const handleSignup = async (
-    email: string,
-    password: string,
-    name: string,
-  ) => {
-    await login(email, password, name);
+  const handleSwitchToLogin = () => {
     setShowSignupModal(false);
-
-    setTimeout(() => {
-      toast({
-        title: `Welcome to RepeatHarmony, ${name}!`,
-        description: "Your account has been created successfully.",
-      });
-    }, 0);
+    setShowLoginModal(true);
   };
 
   const handleSignOut = () => {
