@@ -11,6 +11,7 @@ import CtaSection from "@/components/sections/CtaSection";
 import FooterSection from "@/components/sections/FooterSection";
 import Chatbot from "@/components/chatbot/Chatbot";
 import AuthDebug from "@/components/debug/AuthDebug";
+import AuthTester from "@/components/debug/AuthTester";
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
