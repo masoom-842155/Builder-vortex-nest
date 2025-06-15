@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -274,10 +274,12 @@ const MoodInput = () => {
 
       setRecentMoods((prev) => [newMoodEntry, ...prev.slice(0, 4)]);
 
-      toast({
-        title: "Mood Analysis Complete!",
-        description: `Detected ${analysis.mood} mood with ${analysis.confidence}% confidence.`,
-      });
+      setTimeout(() => {
+        toast({
+          title: "Mood Analysis Complete!",
+          description: `Detected ${analysis.mood} mood with ${analysis.confidence}% confidence.`,
+        });
+      }, 0);
 
       setIsSubmitting(false);
     }, 3000);
@@ -313,10 +315,12 @@ const MoodInput = () => {
     if (!isRecording) {
       // Start recording
       setIsRecording(true);
-      toast({
-        title: "Recording Started",
-        description: "Speak clearly about your feelings...",
-      });
+      setTimeout(() => {
+        toast({
+          title: "Recording Started",
+          description: "Speak clearly about your feelings...",
+        });
+      }, 0);
     } else {
       // Stop recording
       setIsRecording(false);
@@ -340,10 +344,12 @@ const MoodInput = () => {
   const handleCameraToggle = () => {
     setIsCameraActive(!isCameraActive);
     if (!isCameraActive) {
-      toast({
-        title: "Camera Activated",
-        description: "Analyzing facial expressions...",
-      });
+      setTimeout(() => {
+        toast({
+          title: "Camera Activated",
+          description: "Analyzing facial expressions...",
+        });
+      }, 0);
       // Simulate facial analysis
       setTimeout(() => {
         const randomMoods = ["calm", "neutral", "slightly_happy"];
