@@ -346,33 +346,169 @@ const MoodInput = () => {
     }
   };
 
-  const handleCameraToggle = () => {
-    setIsCameraActive(!isCameraActive);
+  const handleCameraToggle = async () => {
     if (!isCameraActive) {
+      try {
+        // Request camera access
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: 640,
+            height: 480,
+            facingMode: "user",
+          },
+        });
+
+        setStream(mediaStream);
+        setIsCameraActive(true);
+
+        // Set video stream
+        if (videoRef.current) {
+          videoRef.current.srcObject = mediaStream;
+          videoRef.current.play();
+        }
+
+        setTimeout(() => {
+          toast({
+            title: "Camera Activated",
+            description: "Point your face towards the camera for analysis...",
+          });
+        }, 0);
+
+        // Start face detection after a short delay
+        setTimeout(() => {
+          startFaceDetection();
+        }, 1000);
+      } catch (error) {
+        console.error("Camera access denied:", error);
+        setTimeout(() => {
+          toast({
+            title: "Camera Access Denied",
+            description: "Please allow camera access to use facial analysis.",
+            variant: "destructive",
+          });
+        }, 0);
+      }
+    } else {
+      // Stop camera
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+        setStream(null);
+      }
+      setIsCameraActive(false);
+      setIsFaceDetecting(false);
+      setFaceDetectionProgress(0);
+
       setTimeout(() => {
         toast({
-          title: "Camera Activated",
-          description: "Analyzing facial expressions...",
+          title: "Camera Deactivated",
+          description: "Facial analysis stopped.",
         });
       }, 0);
-      // Simulate facial analysis
-      setTimeout(() => {
-        const randomMoods = ["calm", "neutral", "slightly_happy"];
-        const randomMood =
-          randomMoods[Math.floor(Math.random() * randomMoods.length)];
-        setDetectedMood(randomMood);
-        setMoodConfidence(Math.floor(Math.random() * 20) + 75);
-        toast({
-          title: "Facial Analysis Complete",
-          description: `Detected ${randomMood.replace("_", " ")} expression.`,
-        });
-      }, 3000);
-    } else {
-      toast({
-        title: "Camera Deactivated",
-        description: "Facial analysis stopped.",
-      });
     }
+  };
+
+  const startFaceDetection = () => {
+    setIsFaceDetecting(true);
+    setFaceDetectionProgress(0);
+
+    // Simulate face detection progress
+    const detectionInterval = setInterval(() => {
+      setFaceDetectionProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(detectionInterval);
+          analyzeFacialExpression();
+          return 100;
+        }
+        return prev + Math.random() * 10 + 5;
+      });
+    }, 200);
+  };
+
+  const analyzeFacialExpression = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) return;
+
+    // Set canvas size to match video
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+
+    // Draw current video frame to canvas
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // Simulate emotion detection based on facial features
+    // In a real implementation, you would use a ML model like face-api.js
+    const emotions = [
+      {
+        emotion: "happy",
+        confidence: Math.random() * 30 + 70,
+        keywords: ["smiling", "bright eyes", "relaxed"],
+      },
+      {
+        emotion: "calm",
+        confidence: Math.random() * 25 + 75,
+        keywords: ["peaceful", "steady", "composed"],
+      },
+      {
+        emotion: "neutral",
+        confidence: Math.random() * 20 + 80,
+        keywords: ["balanced", "stable", "normal"],
+      },
+      {
+        emotion: "sad",
+        confidence: Math.random() * 30 + 60,
+        keywords: ["downturned", "tired", "withdrawn"],
+      },
+      {
+        emotion: "anxious",
+        confidence: Math.random() * 25 + 65,
+        keywords: ["tense", "worried", "unsettled"],
+      },
+      {
+        emotion: "energetic",
+        confidence: Math.random() * 30 + 70,
+        keywords: ["alert", "animated", "vibrant"],
+      },
+    ];
+
+    // Select emotion with highest confidence
+    const detectedEmotion = emotions.reduce((prev, current) =>
+      prev.confidence > current.confidence ? prev : current,
+    );
+
+    setDetectedMood(detectedEmotion.emotion);
+    setMoodConfidence(Math.round(detectedEmotion.confidence));
+    setIsFaceDetecting(false);
+
+    // Generate description based on detected emotion
+    const descriptions = {
+      happy:
+        "Facial analysis detected positive expressions with upturned mouth corners and bright eyes.",
+      calm: "Face shows relaxed features with steady eye contact and composed expression.",
+      neutral:
+        "Balanced facial expression with stable features and normal muscle tension.",
+      sad: "Analysis detected downward facial features and decreased eye brightness.",
+      anxious:
+        "Facial tension detected in forehead and eye area, indicating stress signals.",
+      energetic:
+        "Alert and animated facial features with increased muscle activity detected.",
+    };
+
+    setMoodText(
+      descriptions[detectedEmotion.emotion as keyof typeof descriptions] ||
+        "Facial analysis completed.",
+    );
+
+    setTimeout(() => {
+      toast({
+        title: "Facial Analysis Complete",
+        description: `Detected ${detectedEmotion.emotion} with ${Math.round(detectedEmotion.confidence)}% confidence.`,
+      });
+    }, 0);
   };
 
   const inputMethods = [
