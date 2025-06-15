@@ -712,25 +712,96 @@ const MoodInput = () => {
                 )}
 
                 {selectedInputMethod === "facial" && (
-                  <div className="min-h-[200px] bg-slate-900 border border-slate-600 rounded-lg flex items-center justify-center">
-                    <div className="text-center space-y-4">
-                      <div
-                        className={`w-20 h-20 ${isCameraActive ? "bg-green-600 animate-pulse" : "bg-purple-600"} rounded-full flex items-center justify-center mx-auto`}
-                      >
-                        <Camera className="w-10 h-10 text-white" />
+                  <div className="min-h-[200px] bg-slate-900 border border-slate-600 rounded-lg">
+                    {isCameraActive ? (
+                      <div className="relative">
+                        {/* Video Stream */}
+                        <video
+                          ref={videoRef}
+                          className="w-full h-64 object-cover rounded-lg"
+                          autoPlay
+                          muted
+                          playsInline
+                        />
+
+                        {/* Hidden Canvas for Processing */}
+                        <canvas ref={canvasRef} className="hidden" />
+
+                        {/* Face Detection Overlay */}
+                        {isFaceDetecting && (
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
+                            <div className="text-center text-white space-y-4">
+                              <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                              <p className="text-lg font-medium">
+                                Analyzing facial expressions...
+                              </p>
+                              <div className="w-48 h-2 bg-slate-700 rounded-full mx-auto">
+                                <div
+                                  className="h-2 bg-blue-500 rounded-full transition-all duration-200"
+                                  style={{ width: `${faceDetectionProgress}%` }}
+                                ></div>
+                              </div>
+                              <p className="text-sm text-slate-300">
+                                {Math.round(faceDetectionProgress)}% complete
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Face Detection Box Simulation */}
+                        {isCameraActive && !isFaceDetecting && (
+                          <div className="absolute top-4 left-4 right-4 bottom-4 border-2 border-green-500 rounded-lg pointer-events-none">
+                            <div className="absolute top-2 left-2 w-8 h-8 border-l-4 border-t-4 border-green-500"></div>
+                            <div className="absolute top-2 right-2 w-8 h-8 border-r-4 border-t-4 border-green-500"></div>
+                            <div className="absolute bottom-2 left-2 w-8 h-8 border-l-4 border-b-4 border-green-500"></div>
+                            <div className="absolute bottom-2 right-2 w-8 h-8 border-r-4 border-b-4 border-green-500"></div>
+                            <div className="absolute top-2 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-2 py-1 rounded text-xs">
+                              Face Detected
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Camera Controls */}
+                        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-4">
+                          <Button
+                            onClick={handleCameraToggle}
+                            className="bg-red-600 hover:bg-red-700 text-white"
+                          >
+                            Stop Camera
+                          </Button>
+                          {!isFaceDetecting && (
+                            <Button
+                              onClick={startFaceDetection}
+                              className="bg-blue-600 hover:bg-blue-700 text-white"
+                            >
+                              Analyze Expression
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                      <p className="text-slate-400">
-                        {isCameraActive
-                          ? "Camera active - analyzing expressions..."
-                          : "Enable camera for facial emotion analysis"}
-                      </p>
-                      <Button
-                        onClick={handleCameraToggle}
-                        className={`${isCameraActive ? "bg-red-600 hover:bg-red-700" : "bg-purple-600 hover:bg-purple-700"}`}
-                      >
-                        {isCameraActive ? "Stop Camera" : "Enable Camera"}
-                      </Button>
-                    </div>
+                    ) : (
+                      <div className="flex items-center justify-center h-64">
+                        <div className="text-center space-y-4">
+                          <div className="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mx-auto">
+                            <Camera className="w-10 h-10 text-white" />
+                          </div>
+                          <p className="text-slate-400">
+                            Enable camera for facial emotion analysis
+                          </p>
+                          <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                            RepeatHarmony uses advanced facial recognition to
+                            detect emotions through micro-expressions, eye
+                            movement, and facial muscle tension.
+                          </p>
+                          <Button
+                            onClick={handleCameraToggle}
+                            className="bg-purple-600 hover:bg-purple-700 text-white"
+                          >
+                            Enable Camera
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
