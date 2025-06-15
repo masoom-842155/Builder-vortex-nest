@@ -206,6 +206,15 @@ const MoodInput = () => {
     }
   }, [isRecording]);
 
+  // Cleanup camera stream on component unmount
+  useEffect(() => {
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, [stream]);
+
   const analyzeMoodFromText = (text: string) => {
     const words = text.toLowerCase().split(/\s+/);
     const moodScores: { [key: string]: number } = {};
