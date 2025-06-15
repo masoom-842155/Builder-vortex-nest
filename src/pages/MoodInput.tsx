@@ -143,6 +143,11 @@ const MoodInput = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [isCameraActive, setIsCameraActive] = useState(false);
+  const [isFaceDetecting, setIsFaceDetecting] = useState(false);
+  const [faceDetectionProgress, setFaceDetectionProgress] = useState(0);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [recentMoods, setRecentMoods] = useState<MoodEntry[]>([
     {
       mood: "Calm",
